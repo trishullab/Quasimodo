@@ -1,0 +1,3 @@
+[submodule "cflobdd"]
+	path = cflobdd
+	url = https://github.com/trishullab/cflobdd.git
