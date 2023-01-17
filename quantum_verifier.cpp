@@ -444,7 +444,7 @@ void QuantumVerifier::ApplyGlobalPhase(double phase)
 long double QuantumVerifier::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
     auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
-    std::string s('X', tmp.root->level-1);
+    std::string s(std::pow(2, tmp.root->level-1), 'X');
     for (unsigned int i = 0; i < numQubits; i++)
     {
         if (qubit_vals.find(i) != qubit_vals.end())

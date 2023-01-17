@@ -26,6 +26,7 @@ DIRS := ./$(SUBDIRS)
 #DIRS += ./cflobdd/CFLOBDD/Solver/uwr/bit_vector + ./cflobdd/CFLOBDD/Solver/uwr/parsing 
 #SOURCE_FILES := $(foreach d, $(DIRS), $(wildcard $(d)*.cpp) 
 SOURCE_FILES := $(shell ls *.cpp)
+# SOURCE_FILES += $(shell find . -maxdepth 1 -mindepth 1 -name \*.cpp -a -not -name main.cpp)
 SOURCE_FILES += $(shell ls cflobdd/CFLOBDD/Solver/uwr/bit_vector/*.cpp)
 SOURCE_FILES += $(shell ls cflobdd/CFLOBDD/Solver/uwr/parsing/*.cpp)
 SOURCE_FILES += $(shell find cflobdd/CFLOBDD -maxdepth 1 -mindepth 1 -name \*.cpp -a -not -name main.cpp)
@@ -46,7 +47,7 @@ DEPENDENCIES = $(patsubst %.cpp, %.d, $(SOURCE_FILES))
 all: $(PROJECT)
 #$(DEPENDENCIES) 
 $(PROJECT): $(OBJECTS)
-	$(CC) -o $(PROJECT) $(OBJECTS) $(LIBS)
+	$(CC) -shared -o $(PROJECT) $(OBJECTS) $(LIBS)
 
 # Include dependencies (if there are any)
 # ifneq "$(strip $(DEPENDENCIES))" ""
