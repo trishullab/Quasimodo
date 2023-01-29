@@ -61,7 +61,7 @@ void QuantumLanguageParser::ReadFromFile(std::string filename)
             insts.push_back(instruct);
         }
     }
-    qv = new QuantumVerifier(numQubits);
+    qv = new CFLOBDDQuantumVerifier(numQubits, 0);
 }
 
 void QuantumLanguageParser::Execute()

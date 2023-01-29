@@ -15,13 +15,13 @@ def build_qcmc(c):
     """Build the shared library for the sample C++ code"""
     print_banner("Building C++ Library")
     invoke.run(
-        "cd .. && make && cd python_pkg/ && cp ../libqcmc.so ."
+        "cd .. && make all && cd python_pkg/ && cp ../libqcmc.so ."
     )
     print("* Complete")
 
 def compile_python_module(cpp_name, extension_name):
     invoke.run(
-        "g++ -g -Wall -Werror -shared -std=c++2a -fPIC -undefined dynamic_lookup -I~/Downloads/Setup/boost_1_68_0/ "
+        "g++ -O3 -Wall -Werror -shared -std=c++2a -fPIC -undefined dynamic_lookup -I~/Downloads/Setup/boost_1_68_0/ "
         "`python3.9 -m pybind11 --includes` "
         "-I /Users/meghana/miniconda3/envs/qp_env/include/python3.9 -I../ "
         "{0} "

@@ -3,63 +3,130 @@
 
 #include "cflobdd/CFLOBDD/matrix1234_complex_float_boost.h"
 
-using namespace CFL_OBDD;
 
 class QuantumVerifier {
     public:
         // Constructor
-        QuantumVerifier(unsigned int numQubits);
+        QuantumVerifier(unsigned int numQubits, int seed);
         // Constructor
         QuantumVerifier();
         // Destructor
-        ~QuantumVerifier();
+        virtual ~QuantumVerifier();
         // set qubit count;
-        void setNumQubits(unsigned int numQubits);
+        virtual void setNumQubits(unsigned int numQubits) = 0;
         // I = [[1 0] [0 1]]
         // For no-op
-        void ApplyIdentityGate(unsigned int index);
+        virtual void ApplyIdentityGate(unsigned int index) = 0;
         // H = [[1 1] [1 -1]]
         // Also called Walsh Gate
-        void ApplyHadamardGate(unsigned int index);
+        virtual void ApplyHadamardGate(unsigned int index) = 0;
         // X = [[0 1] [1 0]]
         // Also called Pauli-X or bit-flip
-        void ApplyNOTGate(unsigned int index);
+        virtual void ApplyNOTGate(unsigned int index) = 0;
         // Y = [[0 -i] [i 0]]
-        void ApplyPauliYGate(unsigned int index);
+        virtual void ApplyPauliYGate(unsigned int index) = 0;
         // Z = [[1 0] [0 -1]]
         // Also called phase-flip
-        void ApplyPauliZGate(unsigned int index);
+        virtual void ApplyPauliZGate(unsigned int index) = 0;
         // S = [[1 0] [0 i]]
         // Also called √(Z) Gate
-        void ApplySGate(unsigned int index);
+        virtual void ApplySGate(unsigned int index) = 0;
         // CNOT = [[1 0 0 0] [0 1 0 0] [0 0 0 1] [0 0 1 0]]
-        void ApplyCNOTGate(long int controller, long int controlled);
-        // Ph = e^{i phase} I
-        void ApplyGlobalPhase(double phase);
+        virtual void ApplyCNOTGate(long int controller, long int controlled) = 0;
+        // Ph = e^{i * π * phase} I
+        virtual void ApplyGlobalPhase(double phase) = 0;
         // SWAP = [[1 0 0 0] [0 0 1 0] [0 1 0 0] [0 0 0 1]]
-        void ApplySwapGate(long int index1, long int index2);
+        virtual void ApplySwapGate(long int index1, long int index2) = 0;
         // iSWAP = [[1 0 0 0] [0 0 i 0] [0 i 0 0] [0 0 0 1]]
-        void ApplyiSwapGate(long int index1, long int index2);
+        virtual void ApplyiSwapGate(long int index1, long int index2) = 0;
         // CZ = [[1 0 0 0] [0 1 0 0] [0 0 1 0] [0 0 0 -1]]
         // Also called Controlled Phase Flip Gate
-        void ApplyCZGate(long int controller, long int controlled);
+        virtual void ApplyCZGate(long int controller, long int controlled) = 0;
         // CPhase = [[1 0 0 0] [0 1 0 0] [0 0 1 0] [0 0 0 e^(i * π * θ)]]
-        void ApplyCPGate(long int controller, long int controlled, double theta);
+        virtual void ApplyCPGate(long int controller, long int controlled, double theta) = 0;
         // P = [[1 0] [0 e^{i * π * θ}]]
-        void ApplyPhaseShiftGate(unsigned int index, double theta);
+        virtual void ApplyPhaseShiftGate(unsigned int index, double theta) = 0;
         // T = P(1/4) = [[1 0] [0 e^{i * π * 1/4}]]
-        void ApplyTGate(unsigned int index);
+        virtual void ApplyTGate(unsigned int index) = 0;
         // CS = [[1 0 0 0] [0 1 0 0] [0 0 1 0] [0 0 0 e^(i * π * 1/2)]]
-        void ApplyCSGate(long int controller, long int controlled);
+        virtual void ApplyCSGate(long int controller, long int controlled) = 0;
         // CCNOT or Toffoli gate
-        void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        virtual void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled) = 0;
         // CSWAP or Fredkin gate
-        void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        virtual void ApplyCSwapGate(long int controller, long int index1, long int index2) = 0; 
         // Obtain Probability
+        virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
+        virtual std::string Measure() = 0;
+    protected:
+        unsigned int numQubits;
+        unsigned int hadamard_count;
+};
+
+using namespace CFL_OBDD;
+
+class CFLOBDDQuantumVerifier : public QuantumVerifier {
+    public:
+        CFLOBDDQuantumVerifier(unsigned int numQubits,  int seed);
+        CFLOBDDQuantumVerifier();
+        ~CFLOBDDQuantumVerifier();
+        void setNumQubits(unsigned int numQubits);
+        void ApplyIdentityGate(unsigned int index);
+        void ApplyHadamardGate(unsigned int index);
+        void ApplyNOTGate(unsigned int index);
+        void ApplyPauliYGate(unsigned int index);
+        void ApplyPauliZGate(unsigned int index);
+        void ApplySGate(unsigned int index);
+        void ApplyCNOTGate(long int controller, long int controlled);
+        void ApplyGlobalPhase(double phase);
+        void ApplySwapGate(long int index1, long int index2);
+        void ApplyiSwapGate(long int index1, long int index2);
+        void ApplyCZGate(long int controller, long int controlled);
+        void ApplyCPGate(long int controller, long int controlled, double theta);
+        void ApplyPhaseShiftGate(unsigned int index, double theta);
+        void ApplyTGate(unsigned int index);
+        void ApplyCSGate(long int controller, long int controlled);
+        void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
+        std::string Measure();
     private:
         CFLOBDD_COMPLEX_BIG stateVector;
-        unsigned int numQubits;
+        //unsigned int numQubits;
+};
+
+#include "cflobdd/cudd-complex-big/cplusplus/cuddObj.hh"
+
+class BDDQuantumVerifier : public QuantumVerifier {
+    public:
+        BDDQuantumVerifier(unsigned int numQubits, int seed);
+        BDDQuantumVerifier();
+        ~BDDQuantumVerifier();
+        void setNumQubits(unsigned int numQubits);
+        void ApplyIdentityGate(unsigned int index);
+        void ApplyHadamardGate(unsigned int index);
+        void ApplyNOTGate(unsigned int index);
+        void ApplyPauliYGate(unsigned int index);
+        void ApplyPauliZGate(unsigned int index);
+        void ApplySGate(unsigned int index);
+        void ApplyCNOTGate(long int controller, long int controlled);
+        void ApplyGlobalPhase(double phase);
+        void ApplySwapGate(long int index1, long int index2);
+        void ApplyiSwapGate(long int index1, long int index2);
+        void ApplyCZGate(long int controller, long int controlled);
+        void ApplyCPGate(long int controller, long int controlled, double theta);
+        void ApplyPhaseShiftGate(unsigned int index, double theta);
+        void ApplyTGate(unsigned int index);
+        void ApplyCSGate(long int controller, long int controlled);
+        void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        long double GetProbability(std::map<unsigned int, int>& qubit_vals);
+        std::string Measure();
+    private:
+        ADD stateVector;
+        Cudd* mgr;
+        std::vector<ADD> x_vars;
+        std::vector<ADD> y_vars;
+        //unsigned int numQubits;
 };
 
 #endif

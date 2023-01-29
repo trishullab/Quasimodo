@@ -7,13 +7,13 @@ CC = g++
 COMMANDLINE_OPTIONS = #/dev/ttyS0
 
 # Compiler options during compilation
-COMPILE_OPTIONS = -g -std=c++2a -w -shared
+COMPILE_OPTIONS = -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H
 # -ansi -pedantic -Wall 
 
 #Header include directories
-HEADERS = -I. -I.~/Downloads/Setup/boost_1_80_0/ -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/
+HEADERS = -I. -I.~/Downloads/Setup/boost_1_80_0/ -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/ -I.cflobdd/cudd-complex-big/ -I.cflobdd/cudd-complex-big/cudd -I.cflobdd/cudd-complex-big/mtr -I.cflobdd/cudd-complex-big/epd -I.cflobdd/cudd-complex-big/st
 #Libraries for linking
-LIBS =
+LIBS = cflobdd/cudd-complex-big/cplusplus/.libs/libobj.a cflobdd/cudd-complex-big/cudd/.libs/libcudd.a -lgmp -lmpfr -lgmpxx 
 
 # Dependency options
 DEPENDENCY_OPTIONS = -MM
@@ -21,12 +21,7 @@ DEPENDENCY_OPTIONS = -MM
 #-- Do not edit below this line --
 
 # Subdirs to search for additional source files
-SUBDIRS := cflobdd/CFLOBDD # $(shell ls cflobdd/CFLOBDD/ cflobdd/Solver/uwr/bit_vector cflobdd/CFLOBDD/Solver/uwr/parsing/)
-DIRS := ./$(SUBDIRS)
-#DIRS += ./cflobdd/CFLOBDD/Solver/uwr/bit_vector + ./cflobdd/CFLOBDD/Solver/uwr/parsing 
-#SOURCE_FILES := $(foreach d, $(DIRS), $(wildcard $(d)*.cpp) 
 SOURCE_FILES := $(shell ls *.cpp)
-# SOURCE_FILES += $(shell find . -maxdepth 1 -mindepth 1 -name \*.cpp -a -not -name main.cpp)
 SOURCE_FILES += $(shell ls cflobdd/CFLOBDD/Solver/uwr/bit_vector/*.cpp)
 SOURCE_FILES += $(shell ls cflobdd/CFLOBDD/Solver/uwr/parsing/*.cpp)
 SOURCE_FILES += $(shell find cflobdd/CFLOBDD -maxdepth 1 -mindepth 1 -name \*.cpp -a -not -name main.cpp)
@@ -43,9 +38,12 @@ DEPENDENCIES = $(patsubst %.cpp, %.d, $(SOURCE_FILES))
 %.d: %.cpp
 	$(CC) $(DEPENDENCY_OPTIONS) $< -MT "$*.o $*.d" -MF $*.d
 
+dep:
+	cd cflobdd/cudd-complex-big && make all && cd ../../
+
 # Make $(PROJECT) the default target
 all: $(PROJECT)
-#$(DEPENDENCIES) 
+#$(DEPENDENCIES) -shared 
 $(PROJECT): $(OBJECTS)
 	$(CC) -shared -o $(PROJECT) $(OBJECTS) $(LIBS)
 
