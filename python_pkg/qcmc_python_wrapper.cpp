@@ -59,4 +59,28 @@ PYBIND11_MODULE(pyqcmc, m) {
         .def("cp", &BDDQuantumVerifier::ApplyCPGate, "ApplyCPGate")
         .def("cs", &BDDQuantumVerifier::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &BDDQuantumVerifier::ApplyCSwapGate, "ApplyCSwapGate");
+    
+    py::class_<WeightedBDDQuantumVerifier, QuantumVerifier>(m, "WeightedBDDQuantumVerifier")
+        .def(py::init<>())
+        .def(py::init<unsigned int, int>())
+        .def("setNumQubits", &WeightedBDDQuantumVerifier::setNumQubits, "setNumQubits")
+        .def("i", &WeightedBDDQuantumVerifier::ApplyIdentityGate, "ApplyIdentityGate")
+        .def("h", &WeightedBDDQuantumVerifier::ApplyHadamardGate, "ApplyHadamardGate")
+        .def("x", &WeightedBDDQuantumVerifier::ApplyNOTGate, "ApplyNOTGate")
+        .def("swap", &WeightedBDDQuantumVerifier::ApplySwapGate, "ApplySwapGate")
+        .def("iswap", &WeightedBDDQuantumVerifier::ApplyiSwapGate, "ApplyiSwapGate")
+        .def("prob", &WeightedBDDQuantumVerifier::GetProbability, "GetProbability")
+        .def("measure", &WeightedBDDQuantumVerifier::Measure, "Measure")
+        .def("y", &WeightedBDDQuantumVerifier::ApplyPauliYGate, "ApplyPauliYGate")
+        .def("z", &WeightedBDDQuantumVerifier::ApplyPauliZGate, "ApplyPauliZGate")
+        .def("p", &WeightedBDDQuantumVerifier::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
+        .def("s", &WeightedBDDQuantumVerifier::ApplySGate, "ApplySGate")
+        .def("t", &WeightedBDDQuantumVerifier::ApplyTGate, "ApplyTGate") 
+        .def("cz", &WeightedBDDQuantumVerifier::ApplyCZGate, "ApplyCZGate")
+        .def("cx", &WeightedBDDQuantumVerifier::ApplyCNOTGate, "ApplyCNOTGate")
+        .def("ccx", &WeightedBDDQuantumVerifier::ApplyCCNOTGate, "ApplyCCNOTGate")
+        .def("gp", &WeightedBDDQuantumVerifier::ApplyGlobalPhase, "ApplyGlobalPhase")
+        .def("cp", &WeightedBDDQuantumVerifier::ApplyCPGate, "ApplyCPGate")
+        .def("cs", &WeightedBDDQuantumVerifier::ApplyCSGate, "ApplyCSGate")
+        .def("cswap", &WeightedBDDQuantumVerifier::ApplyCSwapGate, "ApplyCSwapGate");
 }

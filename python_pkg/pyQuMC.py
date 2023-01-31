@@ -9,3 +9,5 @@ def QuantumCircuitModelChecker(model_str = "CFLOBDD", numQubits = 0, seed = 0):
         return pyqcmc.CFLOBDDQuantumVerifier(numQubits, seed)
     elif model_str == "BDD":
         return pyqcmc.BDDQuantumVerifier(numQubits, seed)
+    elif model_str == "WBDD":
+        return pyqcmc.WeightedBDDQuantumVerifier(numQubits, seed)
