@@ -497,6 +497,16 @@ BDDQuantumVerifier::BDDQuantumVerifier(unsigned int numQubits, int seed) : Quant
         mgr->SetEpsilon(epsilon);
     }
 
+    if (numQubits > 2048) // Based on experiments
+    {
+        mpfr_set_default_prec(500);
+        CUDD_VALUE_TYPE epsilon;
+        mpfr_init_set_si(epsilon.real, -1 * (300) , RND_TYPE);
+        mpfr_exp10(epsilon.real, epsilon.real, RND_TYPE);
+        mpfr_init_set_si(epsilon.imag, 0, RND_TYPE);
+        mgr->SetEpsilon(epsilon);
+    }
+
     for (unsigned int i = 0; i < numQubits; i++)
     {
         x_vars.push_back(mgr->addVar(2*i));
@@ -576,6 +586,8 @@ void BDDQuantumVerifier::ApplyHadamardGate(unsigned int index)
     tmp_x.push_back(x_vars[index]); tmp_y.push_back(y_vars[index]);
     stateVector = HGate.MatrixMultiply(stateVector, tmp_x);
     stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
+    // if (index == numQubits - 1)
+    //     stateVector.print(2 * numQubits, 2);
     hadamard_count++;
 }
 
@@ -589,8 +601,12 @@ void BDDQuantumVerifier::ApplyNOTGate(unsigned int index)
     ADD XGate = ~y_vars[index] * x_vars[index] + y_vars[index] * ~x_vars[index];
     std::vector<ADD> tmp_x, tmp_y; 
     tmp_x.push_back(x_vars[index]); tmp_y.push_back(y_vars[index]);
+    // std::cout << "index: " << index << std::endl;
+    // stateVector.print(2 * numQubits, 2);
     stateVector = XGate.MatrixMultiply(stateVector, tmp_x);
     stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
+    // std::cout << "after" << std::endl;
+    // stateVector.print(2 * numQubits, 2);
 }
 
 void BDDQuantumVerifier::ApplyPauliYGate(unsigned int index)
@@ -695,7 +711,7 @@ void BDDQuantumVerifier::ApplySwapGate(long int index1, long int index2)
     ADD SwapGate = ~y_vars[index1] * ~y_vars[index2] * ~x_vars[index1] * ~x_vars[index2]
                  + ~y_vars[index1] * y_vars[index2] * x_vars[index1] * ~x_vars[index2]
                  + y_vars[index1] * ~y_vars[index2] * ~x_vars[index1] * x_vars[index2]
-                 + y_vars[index1] * y_vars[index2] * x_vars[index1] * ~x_vars[index2];
+                 + y_vars[index1] * y_vars[index2] * x_vars[index1] * x_vars[index2];
     std::vector<ADD> tmp_x, tmp_y; 
     tmp_x.push_back(x_vars[index1]); tmp_x.push_back(x_vars[index2]);
     tmp_y.push_back(y_vars[index1]); tmp_y.push_back(y_vars[index2]);
@@ -720,7 +736,7 @@ void BDDQuantumVerifier::ApplyiSwapGate(long int index1, long int index2)
     ADD iSwapGate = ~y_vars[index1] * ~y_vars[index2] * ~x_vars[index1] * ~x_vars[index2]
                  + ~y_vars[index1] * y_vars[index2] * x_vars[index1] * ~x_vars[index2] * I_val
                  + y_vars[index1] * ~y_vars[index2] * ~x_vars[index1] * x_vars[index2] * I_val
-                 + y_vars[index1] * y_vars[index2] * x_vars[index1] * ~x_vars[index2];
+                 + y_vars[index1] * y_vars[index2] * x_vars[index1] * x_vars[index2];
     std::vector<ADD> tmp_x, tmp_y; 
     tmp_x.push_back(x_vars[index1]); tmp_x.push_back(x_vars[index2]);
     tmp_y.push_back(y_vars[index1]); tmp_y.push_back(y_vars[index2]);
@@ -1135,7 +1151,7 @@ void WeightedBDDQuantumVerifier::ApplySwapGate(long int index1, long int index2)
     }
     else
     {
-        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, index2, index1, 0);
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(2 * numQubits, index2, index1, 0);
         stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
     }
 }
