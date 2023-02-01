@@ -20,8 +20,7 @@ for i in range(0, numQubits):
     allZeros += "0"
     allOnes += "1"
 
-iters = math.floor((math.pi * (2 ** (numQubits//2)))/4)
-
+iters = math.ceil((math.pi * (2 ** (numQubits//2)))/4)
 start = time.time()
 qc = pyQuMC.QuantumCircuitModelChecker(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
 
@@ -48,7 +47,7 @@ for j in range(0, iters):
     for i in range(0, numQubits):
         if s[i] == '0':
             qc.x(i)
-
+    
     for i in range(numQubits):
         qc.h(i)
         qc.x(i)
@@ -68,7 +67,6 @@ for j in range(0, iters):
     for i in range(numQubits):
         qc.x(i)
         qc.h(i)
-
 
 sampled_string = qc.measure()[0:numQubits]
 # print(sampled_string)

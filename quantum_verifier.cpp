@@ -453,6 +453,7 @@ void CFLOBDDQuantumVerifier::ApplyGlobalPhase(double phase)
 
 long double CFLOBDDQuantumVerifier::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
+    // stateVector.print(std::cout);
     auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
     std::string s(std::pow(2, tmp.root->level-1), 'X');
     for (unsigned int i = 0; i < numQubits; i++)
@@ -940,6 +941,7 @@ long double BDDQuantumVerifier::GetProbability(std::map<unsigned int, int>& qubi
 std::string BDDQuantumVerifier::Measure() 
 {
     ADD tmp = stateVector.SquareTerminalValues();
+    // tmp.print(2 * numQubits, 2);
     tmp.UpdatePathInfo(2, numQubits);
     return tmp.SamplePath(numQubits, 2, "").substr(0, numQubits); 
 }
@@ -1077,7 +1079,6 @@ void WeightedBDDQuantumVerifier::ApplyNOTGate(unsigned int index)
     }
     // stateVector.print(std::cout);
     auto X = ApplyGateF(numQubits, index, WeightedMatrix1234ComplexFloatBoostMul::MkNegationMatrixInterleaved);
-    // X.print(std::cout);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(X, stateVector);
     // stateVector.print(std::cout);
 }
@@ -1397,7 +1398,7 @@ void WeightedBDDQuantumVerifier::ApplyGlobalPhase(double phase)
 long double WeightedBDDQuantumVerifier::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
     auto tmp = stateVector;
-    std::string s(std::pow(2, tmp.root->level-1), 'X');
+    std::string s(numQubits, 'X');
     for (unsigned int i = 0; i < numQubits; i++)
     {
         if (qubit_vals.find(i) != qubit_vals.end())
