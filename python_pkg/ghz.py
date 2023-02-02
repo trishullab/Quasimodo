@@ -14,7 +14,7 @@ for i in range(0, numQubits):
     allOnes += "1"
 
 start = time.time()
-qc = pyQuMC.QuantumCircuitModelChecker(sys.argv[2], numQubits, int(sys.argv[3]))
+qc = pyQuMC.QuantumCircuit(sys.argv[2], numQubits, int(sys.argv[3]))
 
 qc.h(0)
 

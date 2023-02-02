@@ -26,7 +26,7 @@ for i in range(0, numQubits):
 
 start = time.time()
 
-qc = pyQuMC.QuantumCircuitModelChecker(sys.argv[2], numQubits + 1, int(sys.argv[3]))
+qc = pyQuMC.QuantumCircuit(sys.argv[2], numQubits + 1, int(sys.argv[3]))
 
 qc.x(numQubits)
 

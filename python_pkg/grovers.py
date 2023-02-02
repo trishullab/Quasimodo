@@ -22,7 +22,7 @@ for i in range(0, numQubits):
 
 iters = math.ceil((math.pi * (2 ** (numQubits//2)))/4)
 start = time.time()
-qc = pyQuMC.QuantumCircuitModelChecker(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
+qc = pyQuMC.QuantumCircuit(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
 
 for i in range(numQubits):
     qc.h(i)
