@@ -47,7 +47,7 @@
 
 1. Clone the repository and run a few init commands
   ``` shell
-      git clone https://github.com/cs14b052/Quasimodo.git .
+      git clone https://github.com/trishullab/Quasimodo.git
       cd Quasimodo/
       git submodule update --init
   ```
