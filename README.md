@@ -7,7 +7,7 @@
       wget https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz .
       tar -xvf boost_1_81_0
    ```
-   Export BOOST_PATH as 
+   Export BOOST_PATH variable as 
    ``` shell
       export BOOST_PATH="$HOME/boost_1_81_0"
    ```
@@ -25,7 +25,7 @@
         conda create -n <env_name> python=3.9
         conda activate tool
     ```
-5. Set Python include path to PYTHON_INCLUDE
+5. Set Python include path to PYTHON_INCLUDE variable
 6. Install pip
 7. Install invoke
     ``` shell
@@ -62,7 +62,7 @@
       make
       cd ../..
   ```
-3. Let's build Quasimodo. (Edit tasks.py in python_pkg to include -undefined dynamic_lookup on line 25 if running on MACOS)
+3. Let's build Quasimodo. (Edit file tasks.py in python_pkg to include -undefined dynamic_lookup on line 25 if running on MACOS)
   ``` shell
       cd python_pkg/
       invoke build-quasimodo
@@ -71,6 +71,6 @@
    
 Quasimodo is installed and can be used by importing to any python program.
 
-- We have provided 6 benchmarks which can be used as a starting guide on how to write programs using Quasimodo library.
-- quantum_circuit.h provides an abstract class which shows all the supported list of gates and queries that can be performed using Quasimodo.
+- We have provided 6 benchmarks that can be used as a starting guide on how to write programs using Quasimodo library.
+- File quantum_circuit.h provides an abstract class that shows all the supported list of gates and queries that can be performed using Quasimodo.
 
