@@ -1,5 +1,5 @@
 # Project Name (executable)
-PROJECT = libqcmc.so
+PROJECT = libquasimodo.so
 # Compiler
 CC = g++
 
@@ -7,7 +7,7 @@ CC = g++
 COMMANDLINE_OPTIONS = #/dev/ttyS0
 
 # Compiler options during compilation
-COMPILE_OPTIONS = -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H
+COMPILE_OPTIONS = -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable
 # -ansi -pedantic -Wall 
 
 #Header include directories
