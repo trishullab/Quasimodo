@@ -11,7 +11,7 @@ def print_banner(msg):
     print("= {} ".format(msg))
 
 @invoke.task()
-def build_qcmc(c):
+def build_quasimodo(c):
     """Build the shared library for the sample C++ code"""
     print_banner("Building C++ Library")
     invoke.run(
@@ -19,17 +19,17 @@ def build_qcmc(c):
     )
     print("* Complete")
 
+# Use -undefined dynamic_lookup for MACOS
 def compile_python_module(cpp_name, extension_name):
     invoke.run(
-        "g++ -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable -fPIC -undefined dynamic_lookup -I~/Downloads/Setup/boost_1_80_0/ "
+        "g++ -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable -fPIC -I${3} "
         "`python3.9 -m pybind11 --includes` "
-        "-I /Users/meghana/miniconda3/envs/qp_env/include/python3.9 -I../ "
+        "-I {2} -I../ "
         "{0} "
         "-o {1}`python3.9-config --extension-suffix` "
-        "-L. -lquasimodo -Wl,-rpath,.".format(cpp_name, extension_name)
+        "-L. -lquasimodo -Wl,-rpath,.".format(cpp_name, extension_name, os.environ["PYTHON_INCLUDE"], os.environ["BOOST_PATH"])
     )
 
-@invoke.task(build_qcmc)
 @invoke.task()
 def build_pybind11(c):
     """Build the pybind11 wrapper library"""

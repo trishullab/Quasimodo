@@ -12,3 +12,6 @@ def QuantumCircuit(model_str = "CFLOBDD", numQubits = 0, seed = 0):
         return pyquasimodo.BDDQuantumCircuit(numQubits, seed)
     elif model_str == "WBDD":
         return pyquasimodo.WeightedBDDQuantumCircuit(numQubits, seed)
+    else:
+        print ('Unsupported backend: ', model_str)
+        exit(1)

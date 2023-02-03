@@ -7,18 +7,17 @@ CC = g++
 COMMANDLINE_OPTIONS = #/dev/ttyS0
 
 # Compiler options during compilation
-COMPILE_OPTIONS = -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable
+COMPILE_OPTIONS = -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable -fPIC
 # -ansi -pedantic -Wall 
 
 #Header include directories
-HEADERS = -I. -I.~/Downloads/Setup/boost_1_80_0/ -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/ -I.cflobdd/cudd-complex-big/ -I.cflobdd/cudd-complex-big/cudd -I.cflobdd/cudd-complex-big/mtr -I.cflobdd/cudd-complex-big/epd -I.cflobdd/cudd-complex-big/st
+HEADERS = -I. -I$(BOOST_PATH) -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/ -I.cflobdd/cudd-complex-big/ -I.cflobdd/cudd-complex-big/cudd -I.cflobdd/cudd-complex-big/mtr -I.cflobdd/cudd-complex-big/epd -I.cflobdd/cudd-complex-big/st
 #Libraries for linking
 LIBS = cflobdd/cudd-complex-big/cplusplus/.libs/libobj.a cflobdd/cudd-complex-big/cudd/.libs/libcudd.a -lgmp -lmpfr -lgmpxx 
 
 # Dependency options
 DEPENDENCY_OPTIONS = -MM
 
-#-- Do not edit below this line --
 
 # Subdirs to search for additional source files
 SOURCE_FILES := $(shell ls *.cpp)
@@ -33,10 +32,6 @@ OBJECTS = $(patsubst %.cpp, %.o, $(SOURCE_FILES))
 
 # Dependencies
 DEPENDENCIES = $(patsubst %.cpp, %.d, $(SOURCE_FILES))
-
-# Create .d files
-%.d: %.cpp
-	$(CC) $(DEPENDENCY_OPTIONS) $< -MT "$*.o $*.d" -MF $*.d
 
 dep:
 	cd cflobdd/cudd-complex-big && make all && cd ../../
