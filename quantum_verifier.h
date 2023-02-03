@@ -57,7 +57,11 @@ class QuantumVerifier {
         virtual void ApplyCSwapGate(long int controller, long int index1, long int index2) = 0; 
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
+        // Measure
         virtual std::string Measure() = 0;
+        // Get Path Counts
+        virtual unsigned long long int GetPathCount(long double prob) = 0;
+    
     protected:
         unsigned int numQubits;
         unsigned int hadamard_count;
@@ -91,6 +95,7 @@ class CFLOBDDQuantumVerifier : public QuantumVerifier {
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        unsigned long long int GetPathCount(long double prob);
     private:
         CFLOBDD_COMPLEX_BIG stateVector;
         //unsigned int numQubits;
@@ -123,6 +128,7 @@ class BDDQuantumVerifier : public QuantumVerifier {
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        unsigned long long int GetPathCount(long double prob);
     private:
         ADD stateVector;
         Cudd* mgr;
@@ -163,6 +169,7 @@ class WeightedBDDQuantumVerifier : public QuantumVerifier
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        unsigned long long int GetPathCount(long double prob);
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
 };

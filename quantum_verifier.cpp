@@ -479,6 +479,13 @@ std::string CFLOBDDQuantumVerifier::Measure()
     return VectorComplexFloatBoost::Sampling(tmp, true).substr(0, numQubits); 
 }
 
+unsigned long long int CFLOBDDQuantumVerifier::GetPathCount(long double prob)
+{
+    auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
+    tmp.CountPaths();
+    return VectorComplexFloatBoost::GetPathCount(tmp, prob);  
+}
+
 /// ****** BDDQuantumVerifier *******
 
 #include <mpfr.h>
@@ -941,9 +948,15 @@ long double BDDQuantumVerifier::GetProbability(std::map<unsigned int, int>& qubi
 std::string BDDQuantumVerifier::Measure() 
 {
     ADD tmp = stateVector.SquareTerminalValues();
-    // tmp.print(2 * numQubits, 2);
     tmp.UpdatePathInfo(2, numQubits);
     return tmp.SamplePath(numQubits, 2, "").substr(0, numQubits); 
+}
+
+unsigned long long int BDDQuantumVerifier::GetPathCount(long double prob)
+{
+    ADD tmp = stateVector.SquareTerminalValues();
+    tmp.UpdatePathInfo(2, numQubits);
+    return tmp.GetPathCount(numQubits, 2, prob); 
 }
 
 // *******************
@@ -1423,6 +1436,12 @@ std::string WeightedBDDQuantumVerifier::Measure()
     std::uniform_real_distribution<double> dis(0.0, 1.0);
     return WeightedVectorComplexFloatBoostMul::Sampling(tmp, true, mt, dis).substr(0, numQubits); 
 }
+
+unsigned long long int WeightedBDDQuantumVerifier::GetPathCount()
+{
+    std::cout << "Error! Operation not supported in WBDDs" << std::endl;
+    abort();
+} 
 
 
 

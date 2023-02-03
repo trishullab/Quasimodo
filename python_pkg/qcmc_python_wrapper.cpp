@@ -6,7 +6,7 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(pyqcmc, m) {
-    m.doc() = "python wrapper for Quantum Circuit Model Checker"; // Optional module docstring
+    m.doc() = "python wrapper for Quantum Simulation"; // Optional module docstring
 
     py::class_<QuantumVerifier>(m, "QuantumVerifier");
         // .def(py::init<>())
@@ -23,6 +23,7 @@ PYBIND11_MODULE(pyqcmc, m) {
         .def("iswap", &CFLOBDDQuantumVerifier::ApplyiSwapGate, "ApplyiSwapGate")
         .def("prob", &CFLOBDDQuantumVerifier::GetProbability, "GetProbability")
         .def("measure", &CFLOBDDQuantumVerifier::Measure, "Measure")
+        .def("measurement_count", &CFLOBDDQuantumVerifier::GetPathCount, "MeasurementCount")
         .def("y", &CFLOBDDQuantumVerifier::ApplyPauliYGate, "ApplyPauliYGate")
         .def("z", &CFLOBDDQuantumVerifier::ApplyPauliZGate, "ApplyPauliZGate")
         .def("p", &CFLOBDDQuantumVerifier::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
@@ -47,6 +48,7 @@ PYBIND11_MODULE(pyqcmc, m) {
         .def("iswap", &BDDQuantumVerifier::ApplyiSwapGate, "ApplyiSwapGate")
         .def("prob", &BDDQuantumVerifier::GetProbability, "GetProbability")
         .def("measure", &BDDQuantumVerifier::Measure, "Measure")
+        .def("measurement_count", &BDDQuantumVerifier::GetPathCount, "MeasurementCount")
         .def("y", &BDDQuantumVerifier::ApplyPauliYGate, "ApplyPauliYGate")
         .def("z", &BDDQuantumVerifier::ApplyPauliZGate, "ApplyPauliZGate")
         .def("p", &BDDQuantumVerifier::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
@@ -71,6 +73,7 @@ PYBIND11_MODULE(pyqcmc, m) {
         .def("iswap", &WeightedBDDQuantumVerifier::ApplyiSwapGate, "ApplyiSwapGate")
         .def("prob", &WeightedBDDQuantumVerifier::GetProbability, "GetProbability")
         .def("measure", &WeightedBDDQuantumVerifier::Measure, "Measure")
+        .def("measurement_count", &WeightedBDDQuantumVerifier::GetPathCounts, "MeasurementCount")
         .def("y", &WeightedBDDQuantumVerifier::ApplyPauliYGate, "ApplyPauliYGate")
         .def("z", &WeightedBDDQuantumVerifier::ApplyPauliZGate, "ApplyPauliZGate")
         .def("p", &WeightedBDDQuantumVerifier::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
