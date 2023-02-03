@@ -1437,7 +1437,7 @@ std::string WeightedBDDQuantumVerifier::Measure()
     return WeightedVectorComplexFloatBoostMul::Sampling(tmp, true, mt, dis).substr(0, numQubits); 
 }
 
-unsigned long long int WeightedBDDQuantumVerifier::GetPathCount()
+unsigned long long int WeightedBDDQuantumVerifier::GetPathCount(long double prob)
 {
     std::cout << "Error! Operation not supported in WBDDs" << std::endl;
     abort();

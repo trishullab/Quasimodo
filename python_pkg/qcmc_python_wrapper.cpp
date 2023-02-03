@@ -73,7 +73,7 @@ PYBIND11_MODULE(pyqcmc, m) {
         .def("iswap", &WeightedBDDQuantumVerifier::ApplyiSwapGate, "ApplyiSwapGate")
         .def("prob", &WeightedBDDQuantumVerifier::GetProbability, "GetProbability")
         .def("measure", &WeightedBDDQuantumVerifier::Measure, "Measure")
-        .def("measurement_count", &WeightedBDDQuantumVerifier::GetPathCounts, "MeasurementCount")
+        .def("measurement_count", &WeightedBDDQuantumVerifier::GetPathCount, "MeasurementCount")
         .def("y", &WeightedBDDQuantumVerifier::ApplyPauliYGate, "ApplyPauliYGate")
         .def("z", &WeightedBDDQuantumVerifier::ApplyPauliZGate, "ApplyPauliZGate")
         .def("p", &WeightedBDDQuantumVerifier::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
