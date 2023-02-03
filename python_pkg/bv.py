@@ -1,10 +1,11 @@
 import sys
-import pyQuMC
+import quasimodo
 import random
 import time
 
 # argv[1] -> numQubits
 # argv[2] -> CFLOBDD/BDD
+# argv[3] -> seed
 numQubits = int(sys.argv[1])
 
 random.seed(int(sys.argv[3]))
@@ -19,7 +20,7 @@ for i in range(0, numQubits):
 
 start = time.time()
 
-qc = pyQuMC.QuantumCircuitModelChecker(sys.argv[2], numQubits + 1, int(sys.argv[3]))
+qc = quasimodo.QuantumCircuit(sys.argv[2], numQubits + 1, int(sys.argv[3]))
 
 qc.x(numQubits)
 
@@ -35,7 +36,6 @@ for i in range(0, numQubits+1):
 
 sampled_string = qc.measure()[:-1]
 sample_count = 1
-
 iter_count = 0
 
 while (sampled_string != s) and iter_count < numQubits:

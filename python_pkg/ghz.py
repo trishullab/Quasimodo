@@ -1,5 +1,5 @@
 import sys
-import pyQuMC
+import quasimodo
 import time
 import random
 
@@ -14,7 +14,7 @@ for i in range(0, numQubits):
     allOnes += "1"
 
 start = time.time()
-qc = pyQuMC.QuantumCircuit(sys.argv[2], numQubits, int(sys.argv[3]))
+qc = quasimodo.QuantumCircuit(sys.argv[2], numQubits, int(sys.argv[3]))
 
 qc.h(0)
 

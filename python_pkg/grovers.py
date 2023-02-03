@@ -1,5 +1,5 @@
 import sys
-import pyQuMC
+import quasimodo
 import time
 import math
 import random
@@ -22,7 +22,7 @@ for i in range(0, numQubits):
 
 iters = math.ceil((math.pi * (2 ** (numQubits//2)))/4)
 start = time.time()
-qc = pyQuMC.QuantumCircuit(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
+qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
 
 for i in range(numQubits):
     qc.h(i)
