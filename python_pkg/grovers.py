@@ -20,7 +20,7 @@ for i in range(0, numQubits):
     allZeros += "0"
     allOnes += "1"
 
-iters = math.ceil((math.pi * (2 ** (numQubits//2)))/4)
+iters = math.ceil((math.pi/4 * math.sqrt((2 ** numQubits))))
 start = time.time()
 qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
 
@@ -31,7 +31,7 @@ for j in range(0, iters):
     for i in range(0, numQubits):
         if s[i] == '0':
             qc.x(i)
-
+    
     qc.ccx(0, 1, numQubits)
     
     for i in range(2, numQubits):
@@ -41,21 +41,23 @@ for j in range(0, iters):
 
     for i in range(numQubits-1, 1, -1):
         qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
-
+    
     qc.ccx(0, 1, numQubits)
 
     for i in range(0, numQubits):
         if s[i] == '0':
             qc.x(i)
-    
+        
     for i in range(numQubits):
         qc.h(i)
         qc.x(i)
-
+    
     qc.ccx(0, 1, numQubits)
+
 
     for i in range(2, numQubits):
         qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
+    
 
     qc.z(2 * numQubits - 2)
 
@@ -63,13 +65,14 @@ for j in range(0, iters):
         qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
 
     qc.ccx(0, 1, numQubits)
+
 
     for i in range(numQubits):
         qc.x(i)
         qc.h(i)
 
 sampled_string = qc.measure()[0:numQubits]
-# print(sampled_string)
+
 sample_count = 1
 
 iter_count = 0

@@ -111,4 +111,30 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cp", &WeightedCFLOBDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &WeightedCFLOBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &WeightedCFLOBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate");
+
+    
+    py::class_<MQTDDCircuit, QuantumCircuit>(m, "MQTDDCircuit")
+        .def(py::init<>())
+        .def(py::init<unsigned int, int>())
+        .def("setNumQubits", &MQTDDCircuit::setNumQubits, "setNumQubits")
+        .def("i", &MQTDDCircuit::ApplyIdentityGate, "ApplyIdentityGate")
+        .def("h", &MQTDDCircuit::ApplyHadamardGate, "ApplyHadamardGate")
+        .def("x", &MQTDDCircuit::ApplyNOTGate, "ApplyNOTGate")
+        .def("swap", &MQTDDCircuit::ApplySwapGate, "ApplySwapGate")
+        .def("iswap", &MQTDDCircuit::ApplyiSwapGate, "ApplyiSwapGate")
+        .def("prob", &MQTDDCircuit::GetProbability, "GetProbability")
+        .def("measure", &MQTDDCircuit::Measure, "Measure")
+        .def("measurement_counts", &MQTDDCircuit::GetPathCount, "MeasurementCount")
+        .def("y", &MQTDDCircuit::ApplyPauliYGate, "ApplyPauliYGate")
+        .def("z", &MQTDDCircuit::ApplyPauliZGate, "ApplyPauliZGate")
+        .def("p", &MQTDDCircuit::ApplyPhaseShiftGate, "ApplyPhaseShiftGate")
+        .def("s", &MQTDDCircuit::ApplySGate, "ApplySGate")
+        .def("t", &MQTDDCircuit::ApplyTGate, "ApplyTGate")
+        .def("cz", &MQTDDCircuit::ApplyCZGate, "ApplyCZGate")
+        .def("cx", &MQTDDCircuit::ApplyCNOTGate, "ApplyCNOTGate")
+        .def("ccx", &MQTDDCircuit::ApplyCCNOTGate, "ApplyCCNOTGate")
+        .def("gp", &MQTDDCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
+        .def("cp", &MQTDDCircuit::ApplyCPGate, "ApplyCPGate")
+        .def("cs", &MQTDDCircuit::ApplyCSGate, "ApplyCSGate")
+        .def("cswap", &MQTDDCircuit::ApplyCSwapGate, "ApplyCSwapGate");
 }
