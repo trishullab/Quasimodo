@@ -1513,22 +1513,23 @@ WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateF(unsigned int n, unsigned int
 
 WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateFWithParam(unsigned int n, unsigned int i, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, double), double theta)
 {
-    WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = f(2, theta);
-    if (i == 0)
+    if (n == 1)
     {
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1));
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I); 
-    }
-    else if (i == n - 1)
-    {
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1));
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, H);
+        return f(1, theta);
     }
     else {
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I1 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * i);
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I2 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n - i - 1));
-        auto T = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I2);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I1, T);
+        int level = ceil(log2(n/2));
+        if (i < n/2)
+        {
+            WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL T = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level + 1);
+            WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = ApplyGateFWithParam(n/2, i, f, theta);
+            return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, T);
+        }
+        else
+        {
+            WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL T = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level + 1);
+            return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(T, ApplyGateFWithParam(n/2, i - n/2, f, theta)); 
+        }
     }
 }
 
@@ -1570,6 +1571,7 @@ void WeightedCFLOBDDQuantumCircuit::ApplyCNOTGate(long int controller, long int 
 std::string WeightedCFLOBDDQuantumCircuit::Measure() 
 {
     auto tmp = stateVector;
+    // stateVector.print(std::cout);
     tmp.ComputeWeightOfPathsAsAmpsToExits();
     std::uniform_real_distribution<double> dis(0.0, 1.0);
     return WeightedVectorComplexFloatBoostMul::Sampling(tmp, true).substr(0, numQubits); 
@@ -1591,6 +1593,18 @@ void WeightedCFLOBDDQuantumCircuit::ApplyPauliZGate(unsigned int index)
 {
     auto Z = ApplyGateF(std::pow(2, stateVector.root->level-1), index, WeightedMatrix1234ComplexFloatBoostMul::MkPauliZGate);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(Z, stateVector);
+}
+
+void WeightedCFLOBDDQuantumCircuit::ApplySXGate(unsigned int index)
+{
+    auto SX = ApplyGateF(std::pow(2, stateVector.root->level-1), index, WeightedMatrix1234ComplexFloatBoostMul::MkSXGate);
+    stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SX, stateVector);
+}
+
+void WeightedCFLOBDDQuantumCircuit::ApplySYGate(unsigned int index)
+{
+    auto SY = ApplyGateF(std::pow(2, stateVector.root->level-1), index, WeightedMatrix1234ComplexFloatBoostMul::MkSYGate);
+    stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SY, stateVector);
 }
 
 void WeightedCFLOBDDQuantumCircuit::ApplySGate(unsigned int index)
@@ -1886,6 +1900,18 @@ void MQTDDCircuit::ApplyPauliZGate(unsigned int index)
 {
     auto z_op = ddp->makeGateDD(dd::Zmat, numQubits, numQubits - 1 - index);
     stateVector = ddp->multiply(z_op, stateVector);
+}
+
+void MQTDDCircuit::ApplySXGate(unsigned int index)
+{
+    auto sx_op = ddp->makeGateDD(dd::SXmat, numQubits, numQubits - 1 - index);
+    stateVector = ddp->multiply(sx_op, stateVector);
+}
+
+void MQTDDCircuit::ApplySYGate(unsigned int index)
+{
+    auto sy_op = ddp->makeGateDD(dd::SYmat, numQubits, numQubits - 1 - index);
+    stateVector = ddp->multiply(sy_op, stateVector);
 }
 
 void MQTDDCircuit::ApplySGate(unsigned int index)

@@ -55,6 +55,10 @@ class QuantumCircuit {
         virtual void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled) = 0;
         // CSWAP or Fredkin gate
         virtual void ApplyCSwapGate(long int controller, long int index1, long int index2) = 0; 
+        // SX = √X = [[1 + i 1 - i] [1 - i 1 + i]]
+        virtual void ApplySXGate(unsigned int index) = 0; 
+        // SY = √Y = [[1 + i -1 - i] [1 + i 1 + i]]
+        virtual void ApplySYGate(unsigned int index) = 0; 
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
         // Measure
@@ -199,6 +203,8 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         void ApplyCSGate(long int controller, long int controlled);
         void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        void ApplySXGate(unsigned int index);
+        void ApplySYGate(unsigned int index);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         unsigned long long int GetPathCount(long double prob);
@@ -234,6 +240,8 @@ class MQTDDCircuit : public QuantumCircuit {
         void ApplyCSGate(long int controller, long int controlled);
         void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
         void ApplyCSwapGate(long int controller, long int index1, long int index2);
+        void ApplySXGate(unsigned int index);
+        void ApplySYGate(unsigned int index);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         unsigned long long int GetPathCount(long double prob);
