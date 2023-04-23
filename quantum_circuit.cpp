@@ -1014,45 +1014,45 @@ void WeightedBDDQuantumCircuit::setNumQubits(unsigned int num)
     stateVector = WeightedVectorComplexFloatBoostMul::MkBasisVector(numQubits, 0, 0);
 }
 
-WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateF(unsigned int n, unsigned int i, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, int))
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateF(unsigned int n, unsigned int i, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, int, unsigned int))
 {
-    WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = f(2, 0);
+    WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = f(2, 0, 2*i);
     if (i == 0)
     {
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I); 
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0, 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I, false); 
     }
     else if (i == n - 1)
     {
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, H);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, H, false);
     }
     else {
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I1 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * i, 0);
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I2 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n - i - 1), 0);
-        auto T = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I2);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I1, T);
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I2 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n - i - 1), 0, 2*(i + 1));
+        auto T = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I2, false);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I1, T, false);
     }
 }
 
-WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateFWithParam(unsigned int n, unsigned int i, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, double, int), double theta)
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ApplyGateFWithParam(unsigned int n, unsigned int i, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, double, int, unsigned int), double theta)
 {
-    WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = f(2, theta, 0);
+    WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = f(2, theta, 0, 2*i);
     if (i == 0)
     {
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I); 
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0, 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I, false); 
     }
     else if (i == n - 1)
     {
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n-1), 0);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, H);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, H, false);
     }
     else {
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I1 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * i, 0);
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I2 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n - i - 1), 0);
-        auto T = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I2);
-        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I1, T);
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I2 = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(2 * (n - i - 1), 0, 2*(i + 1));
+        auto T = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I2, false);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I1, T, false);
     }
 }
 
@@ -1065,6 +1065,7 @@ void WeightedBDDQuantumCircuit::ApplyIdentityGate(unsigned int index)
         abort();   
     }
     auto H = ApplyGateF(numQubits, index, WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved);
+    // auto H = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(numQubits, 0);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateVector);
 }
 
@@ -1076,7 +1077,6 @@ void WeightedBDDQuantumCircuit::ApplyHadamardGate(unsigned int index)
         abort();   
     }
     auto H = ApplyGateF(numQubits, index, WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved);
-    // H.print(std::cout);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateVector);
     // stateVector.print(std::cout);
     // std::cout << std::endl;
