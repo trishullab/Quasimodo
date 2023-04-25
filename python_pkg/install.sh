@@ -77,7 +77,8 @@ cd ../..
 
 # Building Quasimodo
 cd python_pkg/
-sed -i 's/-I${3}/-I{3}/g' tasks.py
+# Not required; already fixed
+# sed -i 's/-I${3}/-I{3}/g' tasks.py
 invoke build-quasimodo
 invoke build-pybind11
 
