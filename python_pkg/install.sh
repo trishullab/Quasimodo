@@ -56,6 +56,9 @@ check_and_install_pkg "autoconf"
 # Install git
 check_and_install_pkg "git"
 
+# Install latex
+check_and_install_pkg "texlive-latex-base"
+
 
 # Clone repository
 git clone https://github.com/trishullab/Quasimodo.git
@@ -64,6 +67,7 @@ git submodule update --init
 
 # Build CUDD Library used for BDDs
 cd cflobdd/cudd-complex-big/
+autoupdate
 autoreconf
 
 # Change a few settings
@@ -77,6 +81,7 @@ cd ../..
 
 # Building Quasimodo
 cd python_pkg/
+mkdir output/
 # Not required; already fixed
 # sed -i 's/-I${3}/-I{3}/g' tasks.py
 invoke build-quasimodo
