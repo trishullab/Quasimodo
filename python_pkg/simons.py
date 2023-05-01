@@ -3,6 +3,27 @@ import quasimodo
 import random
 import time
 
+def dot_product(s, eq):
+    count = 0
+    for i in range(0, len(s)):
+        if s[i] == eq[i] and s[i] == '1':
+            count += 1
+    
+    return count % 2
+
+def check_correctness(s, equations):
+    for eq in equations:
+        if dot_product(s, eq) != 0:
+            return False
+    
+    return True
+
+def parse_string(s):
+    new_s = ""
+    for i in range(0, len(s), 2):
+        new_s += s[i]
+    return new_s
+
 # argv[1] -> numQubits
 # argv[2] -> CFLOBDD/BDD
 # argv[3] -> seed
@@ -36,7 +57,7 @@ for i in range(numQubits-1, -1, -1):
             m += 1
         break
     k += 1
-
+    
 for i in range(0, numQubits):
     qc.h(i)
 
@@ -45,5 +66,19 @@ for i in range(0, 2 * numQubits):
 
 end = time.time()
 
-print ('Correct , time: ', (end - start), " iter_count: " , 0)
+equations = []
+for i in range(0, 2 * numQubits):
+    sampled_string = qc.measure()
+    sampled_string = parse_string(sampled_string)
+    if not sampled_string in equations:
+        equations.append(sampled_string)
+
+end = time.time()
+
+is_correct = check_correctness(s, equations)
+
+if is_correct:
+    print ('Correct , time: ', (end - start), " iter_count: " , 0)
+else:
+    print ('Incorrect , time: ', (end - start), " iter_count: " , 0)
 
