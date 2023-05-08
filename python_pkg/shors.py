@@ -34,7 +34,7 @@ def IQFT(qc, numQubits, offset):
     for i in range(1, numQubits + 1):
         for j in range(i-1, -1, -1):
             theta = -1/pow(2, i - j)
-            qc.cp(i + offset, j + offset, theta)
+            qc.cp(j + offset, i + offset, theta)
         qc.h(i + offset)
     for i in range(0, (numQubits + 1)//2):
         qc.swap(offset + i, offset + numQubits - i) 
@@ -119,56 +119,62 @@ N = int(sys.argv[3])
 a = int(sys.argv[4])
 
 start = time.time()
-qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits + 3)
+f1 = f2 = 1
+r = 0
+while True:
+    qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits + 3, r)
 
-powersOfa = []
+    powersOfa = []
 
-for i in range(0, 2 * numQubits):
-    if i == 0:
-        powersOfa.append(a % N)
-    else:
-        prev = powersOfa[-1]
-        powersOfa.append((prev * prev) % N)
+    for i in range(0, 2 * numQubits):
+        if i == 0:
+            powersOfa.append(a % N)
+        else:
+            prev = powersOfa[-1]
+            powersOfa.append((prev * prev) % N)
 
+    qc.h(0)
+    qc.x(numQubits) # n
+    controller = 0
 
-qc.h(0)
-qc.x(numQubits) # n
-controller = 0
+    qubit_map = {}
+    for i in range(0, 2 * numQubits + 3):
+        qubit_map[i] = 'X'
 
-qubit_map = {}
-for i in range(0, 2 * numQubits + 3):
-    qubit_map[i] = 'X'
+    sampled_string = ""
+    sampled_number = 0
 
-sampled_string = ""
-sampled_number = 0
+    for i in range(0, 2 * numQubits):
+        powOfa = powersOfa[2 * numQubits - 1 - i]
+            
+        CMULT(qc, controller, powOfa, N, numQubits)
 
-for i in range(0, 2 * numQubits):
-    powOfa = powersOfa[2 * numQubits - 1 - i]
+        for j in range(0, numQubits):
+            qc.cswap(controller, 1 + j, 2 + j + numQubits)
         
-    CMULT(qc, controller, powOfa, N, numQubits)
+        powOfaInv = modInverse(powOfa, N)
+        CMULT(qc, controller, N - powOfaInv, N, numQubits)
 
-    for j in range(0, numQubits):
-        qc.cswap(controller, 1 + j, 2 + j + numQubits)
-    
-    powOfaInv = modInverse(powOfa, N)
-    CMULT(qc, controller, N - powOfaInv, N, numQubits)
+        if i != 0 and sampled_number != 0:
+            theta = (2 ** (i + 1) - sampled_number)/sampled_number
+            qc.p(0, theta)
 
-    if i != 0 and sampled_number != 0:
-        theta = (2 ** (i + 1) - sampled_number)/sampled_number
-        qc.p(0, theta)
+        qc.h(0)
+        m = qc.measure_and_collapse([0])
+        if m != '0':
+            qc.x(0)
+        
+        qc.h(0)
 
-    qc.h(0)
+        sampled_string = m + sampled_string
+        if m == '1':
+            sampled_number = 2 ** (i + 1) + sampled_number
 
-    m = qc.measure_and_collapse([0])
-    if m != '0':
-        qc.x(0)
-    
-    qc.h(0)
+    (f1, f2) = factorize(Frac(sampled_string, N), N)
+    if f1 != 1 or f2 != 1:
+        break
+    r += 1
 
-    sampled_string = m + sampled_string
-    if m == '1':
-        sampled_number = 2 ** (i + 1) + sampled_number
-
-(f1, f2) = factorize(Frac(sampled_string, N), N)
-
+end = time.time()
 print(f1, f2)
+print ('Correct , time: ', (end - start), " iter_count: " , 0)

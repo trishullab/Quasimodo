@@ -1572,9 +1572,48 @@ std::string WeightedCFLOBDDQuantumCircuit::Measure()
 {
     auto tmp = stateVector;
     // stateVector.print(std::cout);
+    // WeightedVectorComplexFloatBoostMul::PrintVector(stateVector, std::cout, numQubits);
+    // return "";
     tmp.ComputeWeightOfPathsAsAmpsToExits();
     std::uniform_real_distribution<double> dis(0.0, 1.0);
     return WeightedVectorComplexFloatBoostMul::Sampling(tmp, true).substr(0, numQubits); 
+}
+
+std::string WeightedCFLOBDDQuantumCircuit::MeasureAndCollapse(std::vector<long int>& indices)
+{
+    std::string final_s = "";
+    for (long int i = 0; i < indices.size(); i++)
+    {
+        auto tmp = stateVector;
+        tmp.ComputeWeightOfPathsAsAmpsToExits();
+        std::uniform_real_distribution<double> dis(0.0, 1.0);
+        char x = WeightedVectorComplexFloatBoostMul::Sampling(tmp, true).substr(0, numQubits)[indices[i]]; 
+        final_s = final_s + x;
+        std::string s(std::pow(2, tmp.root->level-1), 'X');
+        s[indices[i]] = x;
+        auto restricted = WeightedMatrix1234ComplexFloatBoostMul::MkRestrictMatrix(tmp.root->level, s);
+        tmp = tmp * restricted;
+        tmp.ComputeWeightOfPathsAsAmpsToExits();
+        if (tmp.root->rootConnection.returnMapHandle[0] == 0 && tmp.root->rootConnection.returnMapHandle.Size() == 1)
+        {
+            tmp.root->rootConnection.factor = 0;
+        }
+        else if (tmp.root->rootConnection.returnMapHandle[0] == 0 && tmp.root->rootConnection.returnMapHandle.Size() == 2)
+        {
+            tmp.root->rootConnection.factor = 1.0/sqrt(tmp.root->rootConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[1]);
+        }
+        else if (tmp.root->rootConnection.returnMapHandle.Size() == 1 && tmp.root->rootConnection.returnMapHandle[0] == 1)
+        {
+            tmp.root->rootConnection.factor = 1.0/sqrt(tmp.root->rootConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[0]); 
+        }
+        else if (tmp.root->rootConnection.returnMapHandle.Size() == 2 && tmp.root->rootConnection.returnMapHandle[0] == 1)
+        {
+            tmp.root->rootConnection.factor = 1.0/sqrt(tmp.root->rootConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[0]); 
+        }
+        stateVector = tmp;
+    }
+    // stateVector.print(std::cout);
+    return final_s;
 }
 
 void WeightedCFLOBDDQuantumCircuit::ApplyNOTGate(unsigned int index)
@@ -1606,6 +1645,63 @@ void WeightedCFLOBDDQuantumCircuit::ApplySYGate(unsigned int index)
     auto SY = ApplyGateF(std::pow(2, stateVector.root->level-1), index, WeightedMatrix1234ComplexFloatBoostMul::MkSYGate);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SY, stateVector);
 }
+
+void WeightedCFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
+{
+    assert(controller1 != controlled);
+    assert(controller2 != controlled);
+    assert(controller1 != controller2);
+    if (controller1 < controller2 && controller2 < controlled)
+    {
+        // a b c
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controller2, controlled, theta);
+        stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controller1 < controlled && controlled < controller2)
+    {
+        // a c b   
+        auto S = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, controlled, controller2);
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controlled, controller2, theta);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, S);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
+        stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controller2 < controller1 && controller1 < controlled)
+    {
+        // b a c
+        ApplyCCPGate(controller2, controller1, controlled, theta);
+    }
+    else if (controller2 < controlled && controlled < controller1)
+    {
+        // b c a
+        auto S = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, controlled, controller1);
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller2, controlled, controller1, theta);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, S);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
+        stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector); 
+    }
+    else if (controlled < controller1 && controller1 < controller2)
+    {
+        // c a b
+        auto S = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, controlled, controller2);
+        // b a c
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller1, controller2, theta);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, S);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
+        stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controlled < controller2 && controller2 < controller1)
+    {
+        // c b a
+        auto S = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, controlled, controller1);
+        // a b c
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller2, controller1, theta);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, S);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
+        stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
+    }
+
+} 
 
 void WeightedCFLOBDDQuantumCircuit::ApplySGate(unsigned int index)
 {
@@ -1880,7 +1976,21 @@ void MQTDDCircuit::ApplyCNOTGate(long int controller, long int controlled)
 
 std::string MQTDDCircuit::Measure()
 {
+    ddp->printVector(stateVector);
     std::string s =  ddp->measureAll(stateVector, false, mt);
+    return s;
+}
+
+std::string MQTDDCircuit::MeasureAndCollapse(std::vector<long int>& indices)
+{
+    // ddp->printVector(stateVector);
+    std::string s = "";
+    for (long int i = 0; i < indices.size(); i++)
+    {
+        ddp->incRef(stateVector);
+        char x = ddp->measureOneCollapsing(stateVector, numQubits - 1 - indices[i], false, mt);
+        s += x;
+    }
     return s;
 }
 
@@ -1984,6 +2094,15 @@ void MQTDDCircuit::ApplyCSwapGate(long int controller, long int index1, long int
     c.qubit = numQubits - 1 - controller;
     auto cswap_op = ddp->makeSWAPDD(numQubits, Controls{c}, numQubits - 1 - index1, numQubits - 1 - index2);
     stateVector = ddp->multiply(cswap_op, stateVector);
+}
+
+void MQTDDCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
+{
+    Control c1, c2;
+    c1.qubit = numQubits - 1 - controller1;
+    c2.qubit = numQubits - 1 - controller2;
+    auto ccp_op = ddp->makeGateDD(dd::Phasemat(M_PI * theta), numQubits, Controls{c1, c2}, numQubits - 1 - controlled);
+    stateVector = ddp->multiply(ccp_op, stateVector);
 }
 
 void MQTDDCircuit::ApplyGlobalPhase(double phase)

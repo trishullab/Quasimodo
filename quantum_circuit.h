@@ -59,10 +59,14 @@ class QuantumCircuit {
         virtual void ApplySXGate(unsigned int index) = 0; 
         // SY = √Y = [[1 + i -1 - i] [1 + i 1 + i]]
         virtual void ApplySYGate(unsigned int index) = 0; 
+        // CCP = controlled-controlled-phase
+        virtual void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta) = 0; 
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
         // Measure
         virtual std::string Measure() = 0;
+        // Measure and Collapse
+        virtual std::string MeasureAndCollapse(std::vector<long int>& indices) = 0;
         // Get Path Counts
         virtual unsigned long long int GetPathCount(long double prob) = 0;
     
@@ -205,8 +209,10 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         void ApplySXGate(unsigned int index);
         void ApplySYGate(unsigned int index);
+        void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
@@ -242,8 +248,10 @@ class MQTDDCircuit : public QuantumCircuit {
         void ApplyCSwapGate(long int controller, long int index1, long int index2);
         void ApplySXGate(unsigned int index);
         void ApplySYGate(unsigned int index);
+        void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
     private:
         std::unique_ptr<Package<DDPackageConfig>> ddp;

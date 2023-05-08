@@ -64,8 +64,7 @@ for i in range(0, numQubits):
 
 equations = []
 for i in range(0, 2 * numQubits):
-    sampled_string = qc.measure()
-    sampled_string = parse_string(sampled_string)
+    sampled_string = qc.measure()[:numQubits]
     if not sampled_string in equations:
         equations.append(sampled_string)
 

@@ -112,7 +112,9 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cs", &WeightedCFLOBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &WeightedCFLOBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
         .def("sx", &WeightedCFLOBDDQuantumCircuit::ApplySXGate, "ApplySXGate")
-        .def("sy", &WeightedCFLOBDDQuantumCircuit::ApplySYGate, "ApplySYGate");
+        .def("sy", &WeightedCFLOBDDQuantumCircuit::ApplySYGate, "ApplySYGate")
+        .def("ccp", &WeightedCFLOBDDQuantumCircuit::ApplyCCPGate, "ApplyCCPGate")
+        .def("measure_and_collapse", &WeightedCFLOBDDQuantumCircuit::MeasureAndCollapse, "MeasureAndCollapse");
 
     
     py::class_<MQTDDCircuit, QuantumCircuit>(m, "MQTDDCircuit")
@@ -140,5 +142,7 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cs", &MQTDDCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &MQTDDCircuit::ApplyCSwapGate, "ApplyCSwapGate")
         .def("sx", &MQTDDCircuit::ApplySXGate, "ApplySXGate")
-        .def("sy", &MQTDDCircuit::ApplySYGate, "ApplySYGate");
+        .def("sy", &MQTDDCircuit::ApplySYGate, "ApplySYGate")
+        .def("ccp", &MQTDDCircuit::ApplyCCPGate, "ApplyCCPGate")
+        .def("measure_and_collapse", &MQTDDCircuit::MeasureAndCollapse, "MeasureAndCollapse");
 }
