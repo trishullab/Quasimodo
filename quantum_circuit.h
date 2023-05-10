@@ -69,6 +69,7 @@ class QuantumCircuit {
         virtual std::string MeasureAndCollapse(std::vector<long int>& indices) = 0;
         // Get Path Counts
         virtual unsigned long long int GetPathCount(long double prob) = 0;
+        virtual unsigned int Size() = 0;
     
     protected:
         unsigned int numQubits;
@@ -214,6 +215,7 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
+        unsigned int Size();
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
         //unsigned int numQubits;
@@ -253,6 +255,7 @@ class MQTDDCircuit : public QuantumCircuit {
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
+        unsigned int Size();
     private:
         std::unique_ptr<Package<DDPackageConfig>> ddp;
         vEdge stateVector;

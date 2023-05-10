@@ -1923,6 +1923,13 @@ long double WeightedCFLOBDDQuantumCircuit::GetProbability(std::map<unsigned int,
 {
 }
 
+unsigned int WeightedCFLOBDDQuantumCircuit::Size()
+{
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
+    stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
+    return (nodeCount + edgeCount);
+}
+
 unsigned long long int WeightedCFLOBDDQuantumCircuit::GetPathCount(long double prob)
 {
     std::cout << "Error! Operation not supported in WBDDs" << std::endl;
@@ -1976,9 +1983,13 @@ void MQTDDCircuit::ApplyCNOTGate(long int controller, long int controlled)
 
 std::string MQTDDCircuit::Measure()
 {
-    ddp->printVector(stateVector);
     std::string s =  ddp->measureAll(stateVector, false, mt);
     return s;
+}
+
+unsigned int MQTDDCircuit::Size()
+{
+    return ddp->size(stateVector);
 }
 
 std::string MQTDDCircuit::MeasureAndCollapse(std::vector<long int>& indices)

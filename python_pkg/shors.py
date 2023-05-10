@@ -176,5 +176,10 @@ while True:
     r += 1
 
 end = time.time()
-print(f1, f2)
-print ('Correct , time: ', (end - start), " iter_count: " , 0)
+
+memory = qc.size()
+
+if f1 * f2 == N:
+    print ('Correct , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
+else:
+    print ('Incorrect , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)

@@ -70,10 +70,12 @@ for i in range(0, 2 * numQubits):
 
 end = time.time()
 
+memory = qc.size()
+
 is_correct = check_correctness(s, equations)
 
 if is_correct:
-    print ('Correct , time: ', (end - start), " iter_count: " , 0)
+    print ('Correct , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
 else:
-    print ('Incorrect , time: ', (end - start), " iter_count: " , 0)
+    print ('Incorrect , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
 
