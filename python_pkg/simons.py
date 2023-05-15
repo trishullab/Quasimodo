@@ -3,6 +3,7 @@ import quasimodo
 import random
 import time
 
+
 def dot_product(s, eq):
     count = 0
     for i in range(0, len(s)):
@@ -57,27 +58,21 @@ for i in range(numQubits-1, -1, -1):
             m += 1
         break
     k += 1
-    
+
 for i in range(0, numQubits):
     qc.h(i)
 
-for i in range(0, 2 * numQubits):
-    sampled_string = qc.measure()
-
-end = time.time()
-
 equations = []
 for i in range(0, 2 * numQubits):
-    sampled_string = qc.measure()
-    sampled_string = sampled_string[:numQubits]
+    sampled_string = qc.measure()[:numQubits]
     if not sampled_string in equations:
         equations.append(sampled_string)
 
 end = time.time()
 
-is_correct = check_correctness(s, equations)
-
 memory = qc.size()
+
+is_correct = check_correctness(s, equations)
 
 if is_correct:
     print ('Correct , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
