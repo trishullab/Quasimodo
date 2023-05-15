@@ -38,46 +38,40 @@ for i in range(0, numQubits):
         s = s + '1'
 
 start = time.time()
-
 qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits, int(sys.argv[3]))
 
-for i in range(0, numQubits):
+for i in range(0, 2 * numQubits, 2):
     qc.h(i)
 
-for i in range(0, numQubits):
-    qc.cx(i, i + numQubits)
+for i in range(0, 2 * numQubits, 2):
+    qc.cx(i, i + 1)
 
 k = 0
-for i in range(numQubits-1, -1, -1):
-    if s[i] == '1':
-        m = numQubits
-        for j in range(numQubits-1, -1, -1):
-            if s[j] == '1':
+for i in range(0, 2 * numQubits, 2):
+    if s[i//2] == '1':
+        m = 1
+        for j in range(0, 2 * numQubits, 2):
+            if s[j//2] == '1':
                 qc.cx(k, m)
-            m += 1
+            m += 2
         break
-    k += 1
-    
-for i in range(0, numQubits):
+    k += 2
+
+for i in range(0, 2 * numQubits, 2):
     qc.h(i)
-
-for i in range(0, 2 * numQubits):
-    sampled_string = qc.measure()
-
-end = time.time()
 
 equations = []
 for i in range(0, 2 * numQubits):
     sampled_string = qc.measure()
-    sampled_string = sampled_string[:numQubits]
+    sampled_string = parse_string(sampled_string)
     if not sampled_string in equations:
         equations.append(sampled_string)
 
 end = time.time()
 
-is_correct = check_correctness(s, equations)
-
 memory = qc.size()
+
+is_correct = check_correctness(s, equations)
 
 if is_correct:
     print ('Correct , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)

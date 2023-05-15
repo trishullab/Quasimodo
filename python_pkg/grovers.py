@@ -81,8 +81,10 @@ while (sampled_string != s) and iter_count < numQubits:
 
 end = time.time()
 
+memory = qc.size()
+
 if iter_count >= numQubits:
-    print ('Incorrect , time: ', (end - start), " iter_count: " , iter_count)
+    print ('Incorrect , time: ', (end - start), " iter_count: " , iter_count, " memory: ", memory)
 else :
-    print ('Correct , time: ', (end - start), " iter_count: " , iter_count)
+    print ('Correct , time: ', (end - start), " iter_count: " , iter_count, " memory: ", memory)
 

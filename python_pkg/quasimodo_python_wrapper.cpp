@@ -35,7 +35,8 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("gp", &CFLOBDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &CFLOBDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &CFLOBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
-        .def("cswap", &CFLOBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate");
+        .def("cswap", &CFLOBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
+        .def("size", &CFLOBDDQuantumCircuit::Size, "Size");
 
     py::class_<BDDQuantumCircuit, QuantumCircuit>(m, "BDDQuantumCircuit")
         .def(py::init<>())
@@ -60,7 +61,8 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("gp", &BDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &BDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &BDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
-        .def("cswap", &BDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate");
+        .def("cswap", &BDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
+        .def("size", &BDDQuantumCircuit::Size, "Size");
     
     py::class_<WeightedBDDQuantumCircuit, QuantumCircuit>(m, "WeightedBDDQuantumCircuit")
         .def(py::init<>())
@@ -85,5 +87,6 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("gp", &WeightedBDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &WeightedBDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &WeightedBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
-        .def("cswap", &WeightedBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate");
+        .def("cswap", &WeightedBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
+        .def("size", &WeightedBDDQuantumCircuit::Size, "Size");
 }

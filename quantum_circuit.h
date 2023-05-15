@@ -61,6 +61,8 @@ class QuantumCircuit {
         virtual std::string Measure() = 0;
         // Get Path Counts
         virtual unsigned long long int GetPathCount(long double prob) = 0;
+        // Get Node Counts
+        virtual unsigned int Size() = 0;
     
     protected:
         unsigned int numQubits;
@@ -96,6 +98,7 @@ class CFLOBDDQuantumCircuit : public QuantumCircuit {
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         unsigned long long int GetPathCount(long double prob);
+        unsigned int Size();
     private:
         CFLOBDD_COMPLEX_BIG stateVector;
         //unsigned int numQubits;
@@ -129,6 +132,7 @@ class BDDQuantumCircuit : public QuantumCircuit {
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         unsigned long long int GetPathCount(long double prob);
+        unsigned int Size();
     private:
         ADD stateVector;
         Cudd* mgr;
@@ -170,6 +174,7 @@ class WeightedBDDQuantumCircuit : public QuantumCircuit
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         unsigned long long int GetPathCount(long double prob);
+        unsigned int Size();
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
 };

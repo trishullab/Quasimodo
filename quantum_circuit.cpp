@@ -486,6 +486,13 @@ unsigned long long int CFLOBDDQuantumCircuit::GetPathCount(long double prob)
     return VectorComplexFloatBoost::GetPathCount(tmp, prob);  
 }
 
+unsigned int CFLOBDDQuantumCircuit::Size()
+{
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
+    stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
+    return (nodeCount + edgeCount);
+}
+
 /// ****** BDDQuantumCircuit *******
 
 #include <mpfr.h>
@@ -958,6 +965,11 @@ unsigned long long int BDDQuantumCircuit::GetPathCount(long double prob)
     tmp.UpdatePathInfo(2, numQubits);
     return tmp.GetPathCount(numQubits, 2, prob); 
 }
+
+unsigned int BDDQuantumCircuit::Size()
+{
+    return stateVector.nodeCount();
+} 
 
 // *******************
 // Weighted BDD
@@ -1443,6 +1455,12 @@ unsigned long long int WeightedBDDQuantumCircuit::GetPathCount(long double prob)
     abort();
 } 
 
+unsigned int WeightedBDDQuantumCircuit::Size()
+{
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
+    stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
+    return (nodeCount + edgeCount);
+}
 
 
 
