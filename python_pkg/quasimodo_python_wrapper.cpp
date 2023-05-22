@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 #include <vector>
 #include "../quantum_circuit.h"
+#include "../quantum_gate.h"
 
 namespace py = pybind11;
 
@@ -32,11 +33,20 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cz", &CFLOBDDQuantumCircuit::ApplyCZGate, "ApplyCZGate")
         .def("cx", &CFLOBDDQuantumCircuit::ApplyCNOTGate, "ApplyCNOTGate")
         .def("ccx", &CFLOBDDQuantumCircuit::ApplyCCNOTGate, "ApplyCCNOTGate")
+        .def("ccp", &CFLOBDDQuantumCircuit::ApplyCCPGate, "ApplyCCPGate")
         .def("gp", &CFLOBDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &CFLOBDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &CFLOBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &CFLOBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
-        .def("size", &CFLOBDDQuantumCircuit::Size, "Size");
+        .def("size", &CFLOBDDQuantumCircuit::Size, "Size")
+        .def("measure_and_collapse", &CFLOBDDQuantumCircuit::MeasureAndCollapse, "MeasureAndCollapse")
+        .def("create_h", &CFLOBDDQuantumCircuit::CreateHadamardGate, "CreateHadamardGate")
+        .def("create_i", &CFLOBDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
+        .def("create_x", &CFLOBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_cx", &CFLOBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("gate_gate_apply", &CFLOBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("apply_gate", &CFLOBDDQuantumCircuit::ApplyGate, "ApplyGate")
+        .def("get_state", &CFLOBDDQuantumCircuit::GetState, "GetState");
 
     py::class_<BDDQuantumCircuit, QuantumCircuit>(m, "BDDQuantumCircuit")
         .def(py::init<>())
@@ -58,11 +68,20 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cz", &BDDQuantumCircuit::ApplyCZGate, "ApplyCZGate")
         .def("cx", &BDDQuantumCircuit::ApplyCNOTGate, "ApplyCNOTGate")
         .def("ccx", &BDDQuantumCircuit::ApplyCCNOTGate, "ApplyCCNOTGate")
+        .def("ccp", &BDDQuantumCircuit::ApplyCCPGate, "ApplyCCPGate")
         .def("gp", &BDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &BDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &BDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &BDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
-        .def("size", &BDDQuantumCircuit::Size, "Size");
+        .def("size", &BDDQuantumCircuit::Size, "Size")
+        .def("measure_and_collapse", &BDDQuantumCircuit::MeasureAndCollapse, "MeasureAndCollapse")
+        .def("create_h", &BDDQuantumCircuit::CreateHadamardGate, "CreateHadamardGate")
+        .def("create_i", &BDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
+        .def("create_x", &BDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_cx", &BDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("gate_gate_apply", &BDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("apply_gate", &BDDQuantumCircuit::ApplyGate, "ApplyGate")
+        .def("get_state", &BDDQuantumCircuit::GetState, "GetState");
     
     py::class_<WeightedBDDQuantumCircuit, QuantumCircuit>(m, "WeightedBDDQuantumCircuit")
         .def(py::init<>())
@@ -84,9 +103,48 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("cz", &WeightedBDDQuantumCircuit::ApplyCZGate, "ApplyCZGate")
         .def("cx", &WeightedBDDQuantumCircuit::ApplyCNOTGate, "ApplyCNOTGate")
         .def("ccx", &WeightedBDDQuantumCircuit::ApplyCCNOTGate, "ApplyCCNOTGate")
+        .def("ccp", &WeightedBDDQuantumCircuit::ApplyCCPGate, "ApplyCCPGate")
         .def("gp", &WeightedBDDQuantumCircuit::ApplyGlobalPhase, "ApplyGlobalPhase")
         .def("cp", &WeightedBDDQuantumCircuit::ApplyCPGate, "ApplyCPGate")
         .def("cs", &WeightedBDDQuantumCircuit::ApplyCSGate, "ApplyCSGate")
         .def("cswap", &WeightedBDDQuantumCircuit::ApplyCSwapGate, "ApplyCSwapGate")
-        .def("size", &WeightedBDDQuantumCircuit::Size, "Size");
+        .def("size", &WeightedBDDQuantumCircuit::Size, "Size")
+        .def("measure_and_collapse", &WeightedBDDQuantumCircuit::MeasureAndCollapse, "MeasureAndCollapse")
+        .def("create_h", &WeightedBDDQuantumCircuit::CreateHadamardGate, "CreateHadamardGate")
+        .def("create_i", &WeightedBDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
+        .def("create_x", &WeightedBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_cx", &WeightedBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("gate_gate_apply", &WeightedBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("apply_gate", &WeightedBDDQuantumCircuit::ApplyGate, "ApplyGate")
+        .def("get_state", &WeightedBDDQuantumCircuit::GetState, "GetState");
+
+
+    py::class_<QuantumGate>(m, "QuantumGate");
+    
+    py::class_<CFLOBDDQuantumGate, QuantumGate>(m, "CFLOBDDQuantumGate")
+        .def(py::init<>())
+        .def("print", &CFLOBDDQuantumGate::Print, "Print");
+    
+    py::class_<BDDQuantumGate, QuantumGate>(m, "BDDQuantumGate")
+        .def(py::init<>())
+        .def("print", &BDDQuantumGate::Print, "Print");
+
+    py::class_<WeightedBDDQuantumGate, QuantumGate>(m, "WeightedBDDQuantumGate")
+        .def(py::init<>())
+        .def("print", &WeightedBDDQuantumGate::Print, "Print");
+
+    py::class_<QuantumState>(m, "QuantumState");
+    
+    py::class_<CFLOBDDQuantumState, QuantumState>(m, "CFLOBDDQuantumState")
+        .def(py::init<>())
+        .def("print", &CFLOBDDQuantumState::Print, "Print");
+    
+    py::class_<BDDQuantumState, QuantumState>(m, "BDDQuantumState")
+        .def(py::init<>())
+        .def("print", &BDDQuantumState::Print, "Print");
+
+    py::class_<WeightedBDDQuantumState, QuantumState>(m, "WeightedBDDQuantumState")
+        .def(py::init<>())
+        .def("print", &WeightedBDDQuantumState::Print, "Print");
+    
 }

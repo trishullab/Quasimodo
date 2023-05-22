@@ -3,6 +3,8 @@
 
 #include "cflobdd/CFLOBDD/matrix1234_complex_float_boost.h"
 #include <random>
+#include "quantum_gate.h"
+#include "quantum_state.h"
 
 
 class QuantumCircuit {
@@ -53,16 +55,26 @@ class QuantumCircuit {
         virtual void ApplyCSGate(long int controller, long int controlled) = 0;
         // CCNOT or Toffoli gate
         virtual void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled) = 0;
+        virtual void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta) = 0;
         // CSWAP or Fredkin gate
         virtual void ApplyCSwapGate(long int controller, long int index1, long int index2) = 0; 
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
         // Measure
         virtual std::string Measure() = 0;
+        // Measure and Collapse
+        virtual std::string MeasureAndCollapse(std::vector<long int>& indices) = 0;
         // Get Path Counts
         virtual unsigned long long int GetPathCount(long double prob) = 0;
         // Get Node Counts
         virtual unsigned int Size() = 0;
+        // List of 0s and 1s. 0 indicates I, 1 indicates H
+        virtual QuantumGate* CreateHadamardGate(std::string indices) = 0;
+        virtual QuantumGate* CreateNOTGate(std::string indices) = 0;
+        virtual QuantumGate* CreateCNOTGate(long int controller, long int controlled) = 0;
+        virtual QuantumState* GetState() = 0;
+
+        // virtual QuantumGate* KroneckerProduct(QuantumGate* m1, QuantumGate* m2) = 0;
     
     protected:
         unsigned int numQubits;
@@ -94,11 +106,23 @@ class CFLOBDDQuantumCircuit : public QuantumCircuit {
         void ApplyTGate(unsigned int index);
         void ApplyCSGate(long int controller, long int controlled);
         void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
         unsigned int Size();
+
+
+        CFLOBDDQuantumGate* CreateHadamardGate(std::string indices);
+        CFLOBDDQuantumGate* CreateIdentityGate(std::string indices);
+        CFLOBDDQuantumGate* CreateNOTGate(std::string indices);
+        CFLOBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        CFLOBDDQuantumGate* KroneckerProduct(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2);
+        CFLOBDDQuantumGate* GateGateApply(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2);
+        void ApplyGate(CFLOBDDQuantumGate* m);
+        CFLOBDDQuantumState* GetState();
     private:
         CFLOBDD_COMPLEX_BIG stateVector;
         //unsigned int numQubits;
@@ -128,16 +152,28 @@ class BDDQuantumCircuit : public QuantumCircuit {
         void ApplyTGate(unsigned int index);
         void ApplyCSGate(long int controller, long int controlled);
         void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
         unsigned int Size();
+
+        BDDQuantumGate* CreateHadamardGate(std::string indices);
+        BDDQuantumGate* CreateIdentityGate(std::string indices);
+        BDDQuantumGate* CreateNOTGate(std::string indices);
+        BDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        BDDQuantumGate* KroneckerProduct(BDDQuantumGate* m1, BDDQuantumGate* m2);
+        BDDQuantumGate* GateGateApply(BDDQuantumGate* m1, BDDQuantumGate* m2);
+        void ApplyGate(BDDQuantumGate* m);
+        BDDQuantumState* GetState();
     private:
         ADD stateVector;
         Cudd* mgr;
         std::vector<ADD> x_vars;
         std::vector<ADD> y_vars;
+        std::vector<ADD> z_vars;
         //unsigned int numQubits;
 };
 
@@ -170,11 +206,23 @@ class WeightedBDDQuantumCircuit : public QuantumCircuit
         void ApplyTGate(unsigned int index);
         void ApplyCSGate(long int controller, long int controlled);
         void ApplyCCNOTGate(long int controller1, long int controller2, long int controlled);
+        void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
+        std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
         unsigned int Size();
+
+        WeightedBDDQuantumGate* CreateHadamardGate(std::string indices);
+        WeightedBDDQuantumGate* CreateIdentityGate(std::string indices);
+        WeightedBDDQuantumGate* CreateNOTGate(std::string indices);
+        WeightedBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        
+        WeightedBDDQuantumGate* KroneckerProduct(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2);
+        WeightedBDDQuantumGate* GateGateApply(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2);
+        void ApplyGate(WeightedBDDQuantumGate* m);
+        WeightedBDDQuantumState* GetState();
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
 };

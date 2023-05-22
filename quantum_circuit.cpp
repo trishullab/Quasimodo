@@ -375,6 +375,63 @@ void CFLOBDDQuantumCircuit::ApplyCCNOTGate(long int controller1, long int contro
     }
 }
 
+void CFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
+{
+    assert(controller1 != controlled);
+    assert(controller2 != controlled);
+    assert(controller1 != controller2);
+    if (controller1 < controller2 && controller2 < controlled)
+    {
+        // a b c
+        auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controller2, controlled, theta);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controller1 < controlled && controlled < controller2)
+    {
+        // a c b   
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller2);
+        auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controlled, controller2, theta);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controller2 < controller1 && controller1 < controlled)
+    {
+        // b a c
+        ApplyCCPGate(controller2, controller1, controlled, theta);
+    }
+    else if (controller2 < controlled && controlled < controller1)
+    {
+        // b c a
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller1);
+        auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller2, controlled, controller1, theta);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector); 
+    }
+    else if (controlled < controller1 && controller1 < controller2)
+    {
+        // c a b
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller2);
+        // b a c
+        auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller1, controller2, theta);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+    }
+    else if (controlled < controller2 && controller2 < controller1)
+    {
+        // c b a
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller1);
+        // a b c
+        auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller2, controller1, theta);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+    }
+
+} 
+
 void CFLOBDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, long int index2)
 {
     if (checkForInit(numQubits) == false)
@@ -474,9 +531,30 @@ long double CFLOBDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& q
 
 std::string CFLOBDDQuantumCircuit::Measure() 
 {
+    // stateVector.print(std::cout);
     auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
     tmp.CountPaths();
     return VectorComplexFloatBoost::Sampling(tmp, true).substr(0, numQubits); 
+}
+
+std::string CFLOBDDQuantumCircuit::MeasureAndCollapse(std::vector<long int>& indices)
+{
+    std::string final_s = "";
+    for (long int i = 0; i < indices.size(); i++)
+    {
+        auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
+        tmp.CountPaths();
+        std::uniform_real_distribution<double> dis(0.0, 1.0);
+        char x = VectorComplexFloatBoost::Sampling(tmp, true).substr(0, numQubits)[indices[i]]; 
+        final_s = final_s + x;
+        std::string s(std::pow(2, tmp.root->level-1), 'X');
+        s[indices[i]] = x;
+        auto restricted = Matrix1234ComplexFloatBoost::MkRestrictMatrix(tmp.root->level, s);
+        tmp = tmp * restricted;
+        stateVector = tmp;
+    }
+    // stateVector.print(std::cout);
+    return final_s;
 }
 
 unsigned long long int CFLOBDDQuantumCircuit::GetPathCount(long double prob)
@@ -491,6 +569,103 @@ unsigned int CFLOBDDQuantumCircuit::Size()
     unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
     stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
     return (nodeCount + edgeCount);
+}
+
+CFLOBDD_COMPLEX_BIG CreateGateF(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateF(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF(indices.substr(indices.length()/2), f); 
+        return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateIdentityGate(std::string indices)
+{
+    long int level = ceil(log2(indices.length()));
+    auto I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+    return new CFLOBDDQuantumGate(I);
+}
+
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateHadamardGate(std::string indices)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for (unsigned int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkWalshInterleaved);
+    return new CFLOBDDQuantumGate(H);
+}
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateNOTGate(std::string indices)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkNegationMatrixInterleaved);
+    return new CFLOBDDQuantumGate(H);
+}
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
+{
+    if (controller < controlled)
+    {
+        auto C = Matrix1234ComplexFloatBoost::MkCNOT(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller, controlled);
+        return new CFLOBDDQuantumGate(C);
+    }
+    else
+    {
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller);
+        auto C = Matrix1234ComplexFloatBoost::MkCNOT(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        return new CFLOBDDQuantumGate(C); 
+    }
+}
+
+void CFLOBDDQuantumCircuit::ApplyGate(CFLOBDDQuantumGate* m)
+{
+    auto c = m->GetGate();
+    assert(c.root->level == stateVector.root->level);
+    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c, stateVector); 
+}
+
+
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::KroneckerProduct(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2)
+{
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetGate();
+    assert(c1.root->level == c2.root->level);
+    auto c = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(c1, c2);
+    return new CFLOBDDQuantumGate(c);
+}
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::GateGateApply(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2)
+{
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetGate();
+    assert(c1.root->level == c2.root->level);
+    auto c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c1, c2);
+    return new CFLOBDDQuantumGate(c);
+}
+
+CFLOBDDQuantumState* CFLOBDDQuantumCircuit::GetState()
+{
+    return new CFLOBDDQuantumState(stateVector);
 }
 
 /// ****** BDDQuantumCircuit *******
@@ -524,8 +699,9 @@ BDDQuantumCircuit::BDDQuantumCircuit(unsigned int numQubits, int seed) : Quantum
 
     for (unsigned int i = 0; i < numQubits; i++)
     {
-        x_vars.push_back(mgr->addVar(2*i));
-        y_vars.push_back(mgr->addVar(2*i + 1));
+        x_vars.push_back(mgr->addVar(3*i));
+        y_vars.push_back(mgr->addVar(3*i + 1));
+        z_vars.push_back(mgr->addVar(3*i + 2));
     }
 
     stateVector = mgr->addOne();
@@ -911,6 +1087,41 @@ void BDDQuantumCircuit::ApplyCCNOTGate(long int controller, long int index1, lon
     stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
 }
 
+void BDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
+{
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+
+    CUDD_VALUE_TYPE phase_complex;
+    mpfr_init(phase_complex.real); mpfr_init(phase_complex.imag);
+    mpfr_const_pi(phase_complex.real, RND_TYPE);
+    mpfr_const_pi(phase_complex.imag, RND_TYPE);
+    mpfr_mul_d(phase_complex.real, phase_complex.real, theta, RND_TYPE);
+    mpfr_mul_d(phase_complex.imag, phase_complex.imag, theta, RND_TYPE);
+    mpfr_cos(phase_complex.real, phase_complex.real, RND_TYPE);
+    mpfr_sin(phase_complex.imag, phase_complex.imag, RND_TYPE);
+    ADD phase_add = mgr->constant(phase_complex);
+    mpfr_clear(phase_complex.real); mpfr_clear(phase_complex.imag);
+    
+    ADD CCPGate = ~y_vars[controller1] * ~y_vars[controller2] * ~y_vars[controlled] * ~x_vars[controller1] * ~x_vars[controller2] * ~x_vars[controlled]
+                  + ~y_vars[controller1] * ~y_vars[controller2] * y_vars[controlled] * ~x_vars[controller1] * ~x_vars[controller2] * x_vars[controlled]
+                  + ~y_vars[controller1] * y_vars[controller2] * ~y_vars[controlled] * ~x_vars[controller1] * x_vars[controller2] * ~x_vars[controlled]
+                  + ~y_vars[controller1] * y_vars[controller2] * y_vars[controlled] * ~x_vars[controller1] * x_vars[controller2] * x_vars[controlled]
+                  + y_vars[controller1] * ~y_vars[controller2] * ~y_vars[controlled] * x_vars[controller1] * ~x_vars[controller2] * ~x_vars[controlled]
+                  + y_vars[controller1] * ~y_vars[controller2] * y_vars[controlled] * x_vars[controller1] * ~x_vars[controller2] * x_vars[controlled]
+                  + y_vars[controller1] * y_vars[controller2] * ~y_vars[controlled] * x_vars[controller1] * x_vars[controller2] * ~x_vars[controlled] * phase_add
+                  + y_vars[controller1] * y_vars[controller2] * y_vars[controlled] * x_vars[controller1] * x_vars[controller2] * x_vars[controlled] * phase_add;
+    std::vector<ADD> tmp_x, tmp_y; 
+    tmp_x.push_back(x_vars[controller1]); tmp_x.push_back(x_vars[controller2]); tmp_x.push_back(x_vars[controlled]);
+    tmp_y.push_back(y_vars[controller1]); tmp_y.push_back(y_vars[controller2]); tmp_y.push_back(y_vars[controlled]);
+    stateVector = CCPGate.MatrixMultiply(stateVector, tmp_x);
+    stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
+
+}
+
 void BDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, long int index2)
 {
     if (checkForInit(numQubits) == false)
@@ -954,22 +1165,156 @@ long double BDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& qubit
 
 std::string BDDQuantumCircuit::Measure() 
 {
+    // stateVector.print(numQubits, 2);
     ADD tmp = stateVector.SquareTerminalValues();
-    tmp.UpdatePathInfo(2, numQubits);
-    return tmp.SamplePath(numQubits, 2, "").substr(0, numQubits); 
+    tmp.UpdatePathInfo(3, numQubits);
+    return tmp.SamplePath(numQubits, 3, "").substr(0, numQubits); 
+}
+
+std::string BDDQuantumCircuit::MeasureAndCollapse(std::vector<long int>& indices)
+{
+    std::string final_s = "";
+    for (long int i = 0; i < indices.size(); i++)
+    {
+        auto tmp = stateVector.SquareTerminalValues();
+        tmp.UpdatePathInfo(2, numQubits);
+        std::uniform_real_distribution<double> dis(0.0, 1.0);
+        char x = tmp.SamplePath(numQubits, 2, "").substr(0, numQubits)[indices[i]]; 
+        final_s = final_s + x;
+        ADD s_add = mgr->addOne();
+        if (x == '0')
+            s_add *= ~x_vars[0];
+        else
+            s_add *= x_vars[0];
+        tmp = tmp * s_add;
+        stateVector = tmp;
+    }
+    // stateVector.print(std::cout);
+    return final_s;
 }
 
 unsigned long long int BDDQuantumCircuit::GetPathCount(long double prob)
 {
     ADD tmp = stateVector.SquareTerminalValues();
-    tmp.UpdatePathInfo(2, numQubits);
-    return tmp.GetPathCount(numQubits, 2, prob); 
+    tmp.UpdatePathInfo(3, numQubits);
+    return tmp.GetPathCount(numQubits, 3, prob); 
 }
 
 unsigned int BDDQuantumCircuit::Size()
 {
     return stateVector.nodeCount();
-} 
+}
+
+
+BDDQuantumGate* BDDQuantumCircuit::CreateHadamardGate(std::string indices)
+{
+    ADD gate = mgr->addOne();
+
+    CUDD_VALUE_TYPE H;
+    mpfr_init_set_d(H.real, 1, RND_TYPE);
+    mpfr_init_set_d(H.imag, 0, RND_TYPE);
+    mpfr_div_d(H.real, H.real, sqrt(2), RND_TYPE);
+    ADD H_val = mgr->constant(H);
+    mpfr_clear(H.real); mpfr_clear(H.imag);
+
+    for (unsigned int i = 0; i < indices.length(); i++)
+    {
+        if (indices[i] == '1')
+        {
+            ADD HGate = (~x_vars[i] + x_vars[i] * (~y_vars[i] - y_vars[i])) * H_val; 
+            gate = gate * HGate;
+        }
+        else
+        {
+            ADD IDGate = ~x_vars[i] * ~y_vars[i] + x_vars[i] * y_vars[i];
+            gate = gate * IDGate; 
+        }
+    }
+    return new BDDQuantumGate(gate);
+}
+
+BDDQuantumGate* BDDQuantumCircuit::CreateIdentityGate(std::string indices)
+{
+    ADD gate = mgr->addOne();
+
+    for (unsigned int i = 0; i < numQubits; i++)
+    {
+        ADD IDGate = ~x_vars[i] * ~y_vars[i] + x_vars[i] * y_vars[i];
+        gate = gate * IDGate; 
+    }
+    return new BDDQuantumGate(gate);
+}
+
+BDDQuantumGate* BDDQuantumCircuit::CreateNOTGate(std::string indices)
+{
+    ADD gate = mgr->addOne();
+
+    for (unsigned int i = 0; i < indices.length(); i++)
+    {
+        if (indices[i] == '1')
+        {
+
+            ADD XGate = ~x_vars[i] * y_vars[i] + x_vars[i] * ~y_vars[i];
+            gate = gate * XGate;
+        }
+        else
+        {
+            ADD IDGate = ~x_vars[i] * ~y_vars[i] + x_vars[i] * y_vars[i];
+            gate = gate * IDGate; 
+        }
+    }
+    return new BDDQuantumGate(gate);
+}
+
+BDDQuantumGate* BDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
+{
+    ADD CNOTGate = ~x_vars[controller] * ~x_vars[controlled] * ~y_vars[controller] * ~y_vars[controlled]
+                 + ~x_vars[controller] * x_vars[controlled] * ~y_vars[controller] * y_vars[controlled]
+                 + x_vars[controller] * ~x_vars[controlled] * y_vars[controller] * y_vars[controlled]
+                 + x_vars[controller] * x_vars[controlled] * y_vars[controller] * ~y_vars[controlled];
+    
+    for (unsigned int i = 0; i < numQubits; i++)
+    {
+        if (i != controller && i != controlled)
+        {
+            ADD IDGate = ~x_vars[i] * ~y_vars[i] + x_vars[i] * y_vars[i];
+            CNOTGate = CNOTGate * IDGate; 
+        }
+    }
+    return new BDDQuantumGate(CNOTGate);
+}
+
+BDDQuantumGate* BDDQuantumCircuit::KroneckerProduct(BDDQuantumGate* m1, BDDQuantumGate* m2)
+{
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetGate();
+    return new BDDQuantumGate(c1 * c2);
+}
+
+BDDQuantumGate* BDDQuantumCircuit::GateGateApply(BDDQuantumGate* m1, BDDQuantumGate* m2)
+{
+    ADD c1 = m1->GetGate();
+    ADD c2 = m2->GetGate();
+    c1 = c1.SwapVariables(y_vars, z_vars);
+    c2 = c2.SwapVariables(x_vars, z_vars);
+    ADD c = c1.MatrixMultiply(c2, z_vars);
+    return new BDDQuantumGate(c);
+}
+
+void BDDQuantumCircuit::ApplyGate(BDDQuantumGate* m)
+{
+    auto c = m->GetGate();
+    std::vector<ADD> tmp_y, tmp_x;
+    tmp_y.push_back(y_vars[0]); tmp_y.push_back(y_vars[2]);
+    tmp_x.push_back(x_vars[0]);  tmp_x.push_back(x_vars[2]);
+    stateVector = stateVector.SwapVariables(x_vars, y_vars);
+    stateVector = c.MatrixMultiply(stateVector, y_vars);
+}
+
+BDDQuantumState* BDDQuantumCircuit::GetState()
+{
+    return new BDDQuantumState(stateVector);
+}
 
 // *******************
 // Weighted BDD
@@ -1344,6 +1689,11 @@ void WeightedBDDQuantumCircuit::ApplyCCNOTGate(long int controller1, long int co
     }
 }
 
+void WeightedBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
+{
+    
+}
+
 void WeightedBDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, long int index2)
 {
     if (checkForInit(numQubits) == false)
@@ -1449,6 +1799,11 @@ std::string WeightedBDDQuantumCircuit::Measure()
     return WeightedVectorComplexFloatBoostMul::Sampling(tmp, true, mt, dis).substr(0, numQubits); 
 }
 
+std::string WeightedBDDQuantumCircuit::MeasureAndCollapse(std::vector<long int>& indices)
+{
+    return "";
+}
+
 unsigned long long int WeightedBDDQuantumCircuit::GetPathCount(long double prob)
 {
     std::cout << "Error! Operation not supported in WBDDs" << std::endl;
@@ -1462,6 +1817,46 @@ unsigned int WeightedBDDQuantumCircuit::Size()
     return (nodeCount + edgeCount);
 }
 
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateHadamardGate(std::string indices)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateIdentityGate(std::string indices)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateNOTGate(std::string indices)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::KroneckerProduct(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::GateGateApply(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2)
+{
+    abort();
+}
+
+void WeightedBDDQuantumCircuit::ApplyGate(WeightedBDDQuantumGate* m)
+{
+    abort();
+}
+
+WeightedBDDQuantumState* WeightedBDDQuantumCircuit::GetState()
+{
+    return new WeightedBDDQuantumState(stateVector);
+}
 
 
 
