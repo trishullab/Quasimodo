@@ -11,9 +11,9 @@ COMPILE_OPTIONS = -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -We
 # -ansi -pedantic -Wall 
 
 #Header include directories
-HEADERS = -I. -I$(BOOST_PATH) -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/ -I.cflobdd/cudd-complex-big/ -I.cflobdd/cudd-complex-big/cudd -I.cflobdd/cudd-complex-big/mtr -I.cflobdd/cudd-complex-big/epd -I.cflobdd/cudd-complex-big/st
+HEADERS = -I. -I$(BOOST_PATH) -I.cflobdd/CFLOBDD -I.cflobdd/CFLOBDD/Solver/uwr/bit_vector/ -I.cflobdd/CFLOBDD/Solver/uwr/assert/ -I.cflobdd/CFLOBDD/Solver/uwr/matrix/ -I.cflobdd/CFLOBDD/Solver/uwr/parsing/ -I.cflobdd/cudd-complex-big/ -I.cflobdd/cudd-complex-big/cudd -I.cflobdd/cudd-complex-big/mtr -I.cflobdd/cudd-complex-big/epd -I.cflobdd/cudd-complex-big/st -I.MQT_DD/dd_package/include/dd/
 #Libraries for linking
-LIBS = cflobdd/cudd-complex-big/cplusplus/.libs/libobj.a cflobdd/cudd-complex-big/cudd/.libs/libcudd.a -lgmp -lmpfr -lgmpxx 
+LIBS = #cflobdd/cudd-complex-big/cplusplus/.libs/libobj.a cflobdd/cudd-complex-big/cudd/.libs/libcudd.a -lgmp -lmpfr -lgmpxx 
 
 # Dependency options
 DEPENDENCY_OPTIONS = -MM

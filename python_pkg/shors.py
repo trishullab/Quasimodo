@@ -17,6 +17,7 @@ def factorize(r, N):
         return (b, N//b)
     return (1, 1)
 
+
 def QFT(qc, numQubits, offset):
     # QFT on numQubits+1..2*numQubits+1
 
@@ -121,65 +122,66 @@ a = int(sys.argv[4])
 start = time.time()
 f1 = f2 = 1
 r = 0
-while True:
-    qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits + 3, r)
 
-    powersOfa = []
+qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits + 3, r)
 
-    for i in range(0, 2 * numQubits):
-        if i == 0:
-            powersOfa.append(a % N)
-        else:
-            prev = powersOfa[-1]
-            powersOfa.append((prev * prev) % N)
+powersOfa = []
+
+for i in range(0, 2 * numQubits):
+    if i == 0:
+        powersOfa.append(a % N)
+    else:
+        prev = powersOfa[-1]
+        powersOfa.append((prev * prev) % N)
+
+qc.h(0)
+qc.x(numQubits) # n
+controller = 0
+
+qubit_map = {}
+for i in range(0, 2 * numQubits + 3):
+    qubit_map[i] = 'X'
+
+sampled_string = ""
+sampled_number = 0
+
+for i in range(0, 2 * numQubits):
+    powOfa = powersOfa[2 * numQubits - 1 - i]
+        
+    CMULT(qc, controller, powOfa, N, numQubits)
+
+    for j in range(0, numQubits):
+        qc.cswap(controller, 1 + j, 2 + j + numQubits)
+    
+    powOfaInv = modInverse(powOfa, N)
+    CMULT(qc, controller, N - powOfaInv, N, numQubits)
+
+    if i != 0:
+        # theta = (2 ** (i + 1) - sampled_number)/sampled_number
+        theta = (2 ** (i + 1) - sampled_number)/(2**(i + 1))
+        qc.p(0, theta)
 
     qc.h(0)
-    qc.x(numQubits) # n
-    controller = 0
+    m = qc.measure_and_collapse([0])
+    if m != '0':
+        qc.x(0)
+    
+    qc.h(0)
 
-    qubit_map = {}
-    for i in range(0, 2 * numQubits + 3):
-        qubit_map[i] = 'X'
+    sampled_string = m + sampled_string
+    if m == '1':
+        sampled_number = 2 ** (i + 1) + sampled_number
 
-    sampled_string = ""
-    sampled_number = 0
-
-    for i in range(0, 2 * numQubits):
-        powOfa = powersOfa[2 * numQubits - 1 - i]
-            
-        CMULT(qc, controller, powOfa, N, numQubits)
-
-        for j in range(0, numQubits):
-            qc.cswap(controller, 1 + j, 2 + j + numQubits)
-        
-        powOfaInv = modInverse(powOfa, N)
-        CMULT(qc, controller, N - powOfaInv, N, numQubits)
-
-        if i != 0 and sampled_number != 0:
-            theta = (2 ** (i + 1) - sampled_number)/sampled_number
-            qc.p(0, theta)
-
-        qc.h(0)
-        m = qc.measure_and_collapse([0])
-        if m != '0':
-            qc.x(0)
-        
-        qc.h(0)
-
-        sampled_string = m + sampled_string
-        if m == '1':
-            sampled_number = 2 ** (i + 1) + sampled_number
-
-    (f1, f2) = factorize(Frac(sampled_string, N), N)
-    if f1 != 1 or f2 != 1:
-        break
-    r += 1
+(f1, f2) = factorize(Frac(sampled_string, N), N)
+is_correct = False
+if f1 != 1 or f2 != 1:
+    is_correct = True
 
 end = time.time()
 
 memory = qc.size()
 
-if f1 * f2 == N:
+if f1 * f2 == N and is_correct:
     print ('Correct , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
 else:
     print ('Incorrect , time: ', (end - start), " iter_count: " , 0, " memory: ", memory)
