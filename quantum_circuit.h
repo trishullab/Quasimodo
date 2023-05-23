@@ -222,7 +222,7 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
 };
 
 #include <memory>
-#include "../MQT_DD/dd_package/include/dd/Package.hpp"
+#include "dd_package/include/dd/Package.hpp"
 using namespace dd;
 
 class MQTDDCircuit : public QuantumCircuit {
