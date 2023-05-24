@@ -42,7 +42,7 @@ start = time.time()
 
 qc.x(numQubits)
 
-for i in range(0, numQubits):
+for i in range(0, numQubits+1):
     indices[i] = "1"
 
 h_gate = qc.create_h(''.join(indices))

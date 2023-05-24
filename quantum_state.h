@@ -18,27 +18,27 @@ using namespace CFL_OBDD;
 
 class CFLOBDDQuantumState : public QuantumState {
     public:
-        CFLOBDDQuantumState(CFLOBDD_COMPLEX_BIG gate);
+        CFLOBDDQuantumState(CFLOBDD_COMPLEX_BIG state);
         CFLOBDDQuantumState();
         ~CFLOBDDQuantumState();
         void Print();
-        CFLOBDD_COMPLEX_BIG GetGate() {return gate;}
+        CFLOBDD_COMPLEX_BIG GetState() {return state;}
 
     private:
-        CFLOBDD_COMPLEX_BIG gate;
+        CFLOBDD_COMPLEX_BIG state;
 };
 
 #include "cflobdd/cudd-complex-big/cplusplus/cuddObj.hh"
 
 class BDDQuantumState : public QuantumState {
     public:
-        BDDQuantumState(ADD gate);
+        BDDQuantumState(ADD state);
         BDDQuantumState();
         ~BDDQuantumState();
         void Print();
-        ADD GetGate() {return gate;}
+        ADD GetState() {return state;}
     private:
-        ADD gate;
+        ADD state;
 };
 
 #include "cflobdd/CFLOBDD/wmatrix1234_complex_fb_mul.h"
@@ -47,13 +47,13 @@ class WeightedBDDQuantumState : public QuantumState
 {
     public:
         // Constructor
-        WeightedBDDQuantumState(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL gate);
+        WeightedBDDQuantumState(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL state);
         WeightedBDDQuantumState();
         ~WeightedBDDQuantumState();
         void Print();
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL GetGate() {return gate;}
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL GetState() {return state;}
     private:
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL gate;
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL state;
 };
 
 #endif

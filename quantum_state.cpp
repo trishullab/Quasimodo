@@ -10,7 +10,7 @@ CFLOBDDQuantumState::CFLOBDDQuantumState()
 
 CFLOBDDQuantumState::CFLOBDDQuantumState(CFLOBDD_COMPLEX_BIG g)
 {
-    gate = g;   
+    state = g;   
 }
 
 CFLOBDDQuantumState::~CFLOBDDQuantumState()
@@ -19,7 +19,7 @@ CFLOBDDQuantumState::~CFLOBDDQuantumState()
 
 void CFLOBDDQuantumState::Print()
 {
-    gate.print(std::cout);
+    state.print(std::cout);
 }
 
 
@@ -29,7 +29,7 @@ BDDQuantumState::BDDQuantumState()
 }
 BDDQuantumState::BDDQuantumState(ADD g)
 {
-    gate = g;   
+    state = g;   
 }
 
 BDDQuantumState::~BDDQuantumState()
@@ -38,7 +38,7 @@ BDDQuantumState::~BDDQuantumState()
 
 void BDDQuantumState::Print()
 {
-    gate.print(2, 2);
+    state.print(2, 2);
 }
 
 // ********* WeightedBDDQuantumState *********
@@ -48,7 +48,7 @@ WeightedBDDQuantumState::WeightedBDDQuantumState()
 
 WeightedBDDQuantumState::WeightedBDDQuantumState(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL g)
 {
-    gate = g;   
+    state = g;   
 }
 
 WeightedBDDQuantumState::~WeightedBDDQuantumState()
