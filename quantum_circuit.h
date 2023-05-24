@@ -2,6 +2,8 @@
 #define _QUANTUM_CIRCUIT
 
 #include "cflobdd/CFLOBDD/matrix1234_complex_float_boost.h"
+#include "quantum_gate.h"
+#include "quantum_state.h"
 #include <random>
 
 
@@ -70,6 +72,11 @@ class QuantumCircuit {
         // Get Path Counts
         virtual unsigned long long int GetPathCount(long double prob) = 0;
         virtual unsigned int Size() = 0;
+
+        virtual QuantumGate* CreateHadamardGate(std::string indices) = 0;
+        virtual QuantumGate* CreateNOTGate(std::string indices) = 0;
+        virtual QuantumGate* CreateCNOTGate(long int controller, long int controlled) = 0;
+        virtual QuantumState* GetState() = 0;
     
     protected:
         unsigned int numQubits;
@@ -216,13 +223,23 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
         unsigned int Size();
+
+        WeightedCFLOBDDQuantumGate* CreateHadamardGate(std::string indices);
+        WeightedCFLOBDDQuantumGate* CreateIdentityGate(std::string indices);
+        WeightedCFLOBDDQuantumGate* CreateNOTGate(std::string indices);
+        WeightedCFLOBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        
+        WeightedCFLOBDDQuantumGate* KroneckerProduct(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2);
+        WeightedCFLOBDDQuantumGate* GateGateApply(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2);
+        void ApplyGate(WeightedCFLOBDDQuantumGate* m);
+        WeightedCFLOBDDQuantumState* GetState();
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateVector;
         //unsigned int numQubits;
 };
 
 #include <memory>
-#include "dd_package/include/dd/Package.hpp"
+#include "../MQT_DD/dd_package/include/dd/Package.hpp"
 using namespace dd;
 
 class MQTDDCircuit : public QuantumCircuit {
@@ -256,6 +273,16 @@ class MQTDDCircuit : public QuantumCircuit {
         std::string MeasureAndCollapse(std::vector<long int>& indices);
         unsigned long long int GetPathCount(long double prob);
         unsigned int Size();
+
+        MQTDDQuantumGate* CreateHadamardGate(std::string indices);
+        MQTDDQuantumGate* CreateIdentityGate(std::string indices);
+        MQTDDQuantumGate* CreateNOTGate(std::string indices);
+        MQTDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        
+        MQTDDQuantumGate* KroneckerProduct(MQTDDQuantumGate* m1, MQTDDQuantumGate* m2);
+        MQTDDQuantumGate* GateGateApply(MQTDDQuantumGate* m1, MQTDDQuantumGate* m2);
+        void ApplyGate(MQTDDQuantumGate* m);
+        MQTDDQuantumState* GetState();
     private:
         std::unique_ptr<Package<DDPackageConfig>> ddp;
         vEdge stateVector;

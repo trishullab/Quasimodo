@@ -2,6 +2,8 @@
 #include <pybind11/stl.h>
 #include <vector>
 #include "../quantum_circuit.h"
+#include "../quantum_gate.h"
+#include "../quantum_state.h"
 
 namespace py = pybind11;
 
@@ -115,7 +117,14 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("sy", &WeightedCFLOBDDQuantumCircuit::ApplySYGate, "ApplySYGate")
         .def("ccp", &WeightedCFLOBDDQuantumCircuit::ApplyCCPGate, "ApplyCCPGate")
         .def("measure_and_collapse", &WeightedCFLOBDDQuantumCircuit::MeasureAndCollapse, "MeasureAndCollapse")
-        .def("size", &WeightedCFLOBDDQuantumCircuit::Size, "Size");
+        .def("size", &WeightedCFLOBDDQuantumCircuit::Size, "Size")
+        .def("create_h", &WeightedCFLOBDDQuantumCircuit::CreateHadamardGate, "CreateHadamardGate")
+        .def("create_i", &WeightedCFLOBDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
+        .def("create_x", &WeightedCFLOBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_cx", &WeightedCFLOBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("gate_gate_apply", &WeightedCFLOBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("apply_gate", &WeightedCFLOBDDQuantumCircuit::ApplyGate, "ApplyGate")
+        .def("get_state", &WeightedCFLOBDDQuantumCircuit::GetState, "GetState");
 
     
     py::class_<MQTDDCircuit, QuantumCircuit>(m, "MQTDDCircuit")
@@ -146,6 +155,35 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("sy", &MQTDDCircuit::ApplySYGate, "ApplySYGate")
         .def("ccp", &MQTDDCircuit::ApplyCCPGate, "ApplyCCPGate")
         .def("measure_and_collapse", &MQTDDCircuit::MeasureAndCollapse, "MeasureAndCollapse")
-        .def("size", &MQTDDCircuit::Size, "Size");
+        .def("size", &MQTDDCircuit::Size, "Size")
+        .def("create_h", &MQTDDCircuit::CreateHadamardGate, "CreateHadamardGate")
+        .def("create_i", &MQTDDCircuit::CreateIdentityGate, "CreateIdentityGate")
+        .def("create_x", &MQTDDCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_cx", &MQTDDCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("gate_gate_apply", &MQTDDCircuit::GateGateApply, "GateGateApply")
+        .def("apply_gate", &MQTDDCircuit::ApplyGate, "ApplyGate")
+        .def("get_state", &MQTDDCircuit::GetState, "GetState");
         
+
+    
+    py::class_<QuantumGate>(m, "QuantumGate");
+    
+    py::class_<WeightedCFLOBDDQuantumGate, QuantumGate>(m, "WeightedCFLOBDDQuantumGate")
+        .def(py::init<>())
+        .def("print", &WeightedCFLOBDDQuantumGate::Print, "Print");
+    
+    py::class_<MQTDDQuantumGate, QuantumGate>(m, "MQTDDQuantumGate")
+        .def(py::init<>())
+        .def("print", &MQTDDQuantumGate::Print, "Print");
+
+    py::class_<QuantumState>(m, "QuantumState");
+    
+    py::class_<WeightedCFLOBDDQuantumState, QuantumState>(m, "WeightedCFLOBDDQuantumState")
+        .def(py::init<>())
+        .def("print", &WeightedCFLOBDDQuantumState::Print, "Print");
+    
+    py::class_<MQTDDQuantumState, QuantumState>(m, "MQTDDQuantumState")
+        .def(py::init<>())
+        .def("print", &MQTDDQuantumState::Print, "Print");
+
 }
