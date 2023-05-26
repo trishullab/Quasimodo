@@ -384,16 +384,16 @@ void CFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controll
     {
         // a b c
         auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controller2, controlled, theta);
-        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
     }
     else if (controller1 < controlled && controlled < controller2)
     {
         // a c b   
         auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller2);
         auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller1, controlled, controller2, theta);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
-        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
     }
     else if (controller2 < controller1 && controller1 < controlled)
     {
@@ -405,9 +405,9 @@ void CFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controll
         // b c a
         auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller1);
         auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller2, controlled, controller1, theta);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
-        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector); 
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector); 
     }
     else if (controlled < controller1 && controller1 < controller2)
     {
@@ -415,9 +415,9 @@ void CFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controll
         auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller2);
         // b a c
         auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller1, controller2, theta);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
-        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
     }
     else if (controlled < controller2 && controller2 < controller1)
     {
@@ -425,12 +425,29 @@ void CFLOBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controll
         auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controller1);
         // a b c
         auto C = Matrix1234ComplexFloatBoost::MkCCP(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller2, controller1, theta);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, S);
-        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(S, C);
-        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C, stateVector);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
     }
 
 } 
+
+void CFLOBDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int controlled)
+{
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+
+    sort(controllers.begin(), controllers.end());
+    // assumption controllers < controlled, TODO: change to a more generalized version
+
+    auto C = Matrix1234ComplexFloatBoost::MkMCX(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controllers, controlled);
+    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
+
+        
+}
 
 void CFLOBDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, long int index2)
 {
@@ -1080,11 +1097,81 @@ void BDDQuantumCircuit::ApplyCCNOTGate(long int controller, long int index1, lon
                   + y_vars[controller] * ~y_vars[index1] * y_vars[index2] * x_vars[controller] * ~x_vars[index1] * x_vars[index2]
                   + y_vars[controller] * y_vars[index1] * ~y_vars[index2] * x_vars[controller] * x_vars[index1] * x_vars[index2]
                   + y_vars[controller] * y_vars[index1] * y_vars[index2] * x_vars[controller] * x_vars[index1] * ~x_vars[index2];
+    // ADD CCNOTGate = y_vars[controller] * y_vars[index1] * ~y_vars[index2] * x_vars[controller] * x_vars[index1] * x_vars[index2]
+    //               + y_vars[controller] * y_vars[index1] * y_vars[index2] * x_vars[controller] * x_vars[index1] * ~x_vars[index2];
     std::vector<ADD> tmp_x, tmp_y; 
     tmp_x.push_back(x_vars[controller]); tmp_x.push_back(x_vars[index1]); tmp_x.push_back(x_vars[index2]);
     tmp_y.push_back(y_vars[controller]); tmp_y.push_back(y_vars[index1]); tmp_y.push_back(y_vars[index2]);
     stateVector = CCNOTGate.MatrixMultiply(stateVector, tmp_x);
     stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
+}
+
+std::string intToBinaryString(unsigned int N, int len)
+{
+    std::string s(len, '0');
+    int i = len-1;
+    while (N > 0)
+    {
+        int c = N % 2;
+        N = N/2;
+        s[i] = (c == 1) ? '1' : '0';
+        i--;
+    }
+    return s;
+}
+
+void BDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int controlled)
+{
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+
+     ADD MCXGate = mgr->addZero();
+     sort(controllers.begin(), controllers.end());
+     unsigned int numControllers = controllers.size();
+     for (unsigned int i = 0; i < std::pow(2, numControllers); i++)
+     {
+        std::string perm = intToBinaryString(i, numControllers);
+        if (perm.find('0') == std::string::npos)
+        {
+            ADD tmp = mgr->addOne();
+            for (unsigned int j = 0; j < numControllers; j++)
+            {
+                tmp *= y_vars[j] * x_vars[j];   
+            }
+            MCXGate += tmp * ~y_vars[controlled] * x_vars[controlled] + tmp * y_vars[controlled] * ~x_vars[controlled];   
+        }
+        else
+        {
+            ADD tmp = mgr->addOne();
+            for (unsigned int j = 0; j < numControllers; j++)
+            {
+                if (perm[j] == '0')
+                {
+                    tmp *= ~y_vars[j] * ~x_vars[j];
+                }
+                else
+                {
+                    tmp *= y_vars[j] * x_vars[j];   
+                }
+            }
+            MCXGate += tmp * ~y_vars[controlled] * ~x_vars[controlled] + tmp * y_vars[controlled] * x_vars[controlled];
+        }
+     }
+
+    std::vector<ADD> tmp_x, tmp_y; 
+    for (unsigned int i = 0; i < controllers.size(); i++)
+    {
+        tmp_x.push_back(x_vars[controllers[i]]);    
+        tmp_y.push_back(y_vars[controllers[i]]);
+    }
+    tmp_x.push_back(x_vars[controlled]);
+    tmp_y.push_back(y_vars[controlled]);
+    stateVector = MCXGate.MatrixMultiply(stateVector, tmp_x);
+    stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
+
 }
 
 void BDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
@@ -1687,6 +1774,11 @@ void WeightedBDDQuantumCircuit::ApplyCCNOTGate(long int controller1, long int co
         C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
         stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
     }
+}
+
+void WeightedBDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int controlled)
+{
+
 }
 
 void WeightedBDDQuantumCircuit::ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta)
