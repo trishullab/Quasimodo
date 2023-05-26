@@ -17,7 +17,7 @@ for i in range(0, numQubits):
 iters = math.ceil((math.pi/4 * math.sqrt((2 ** numQubits))))
 
 start = time.time()
-qc = quasimodo.QuantumCircuit(sys.argv[2], 2 * numQubits - 1, int(sys.argv[3]))
+qc = quasimodo.QuantumCircuit(sys.argv[2], numQubits + 1, int(sys.argv[3]))
 
 for i in range(numQubits):
     qc.h(i)
@@ -27,17 +27,11 @@ for j in range(0, iters):
         if s[i] == '0':
             qc.x(i)
     
-    qc.ccx(0, 1, numQubits)
+    qc.mcx([i for i in range(0, numQubits)], numQubits)
     
-    for i in range(2, numQubits):
-        qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
+    qc.z(numQubits)
 
-    qc.z(2 * numQubits - 2)
-
-    for i in range(numQubits-1, 1, -1):
-        qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
-    
-    qc.ccx(0, 1, numQubits)
+    qc.mcx([i for i in range(0, numQubits)], numQubits)
 
     for i in range(0, numQubits):
         if s[i] == '0':
@@ -47,17 +41,11 @@ for j in range(0, iters):
         qc.h(i)
         qc.x(i)
     
-    qc.ccx(0, 1, numQubits)
-
-    for i in range(2, numQubits):
-        qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
+    qc.mcx([i for i in range(0, numQubits)], numQubits)
     
-    qc.z(2 * numQubits - 2)
+    qc.z(numQubits)
 
-    for i in range(numQubits-1, 1, -1):
-        qc.ccx(i, numQubits + i - 2, numQubits + i - 1)
-
-    qc.ccx(0, 1, numQubits)
+    qc.mcx([i for i in range(0, numQubits)], numQubits)
 
     for i in range(numQubits):
         qc.x(i)

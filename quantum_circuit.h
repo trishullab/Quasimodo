@@ -63,6 +63,7 @@ class QuantumCircuit {
         virtual void ApplySYGate(unsigned int index) = 0; 
         // CCP = controlled-controlled-phase
         virtual void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta) = 0; 
+        virtual void ApplyMCXGate(std::vector<long int> controllers, long int controllerd) = 0;
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
         // Measure
@@ -218,6 +219,7 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         void ApplySXGate(unsigned int index);
         void ApplySYGate(unsigned int index);
         void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
+        void ApplyMCXGate(std::vector<long int> controllers, long int controlled);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
@@ -268,6 +270,7 @@ class MQTDDCircuit : public QuantumCircuit {
         void ApplySXGate(unsigned int index);
         void ApplySYGate(unsigned int index);
         void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
+        void ApplyMCXGate(std::vector<long int> controllers, long int controlled);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);

@@ -1919,6 +1919,11 @@ void WeightedCFLOBDDQuantumCircuit::ApplyGlobalPhase(double phase)
     stateVector = phase_complex * stateVector;
 }
 
+void WeightedCFLOBDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int controlled)
+{
+
+}
+
 long double WeightedCFLOBDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
 }
@@ -2162,6 +2167,19 @@ void MQTDDCircuit::ApplyCCPGate(long int controller1, long int controller2, long
     c2.qubit = numQubits - 1 - controller2;
     auto ccp_op = ddp->makeGateDD(dd::Phasemat(M_PI * theta), numQubits, Controls{c1, c2}, numQubits - 1 - controlled);
     stateVector = ddp->multiply(ccp_op, stateVector);
+}
+
+void MQTDDCircuit::ApplyMCXGate(std::vector<long int> controllers, long int controlled)
+{
+    Controls c;
+    for (unsigned int i = 0; i < controllers.size(); i++)
+    {
+        Control ct;
+        ct.qubit = numQubits - 1 - controllers[i];
+        c.insert(ct);
+    }
+    auto mcx_op = ddp->makeGateDD(dd::Xmat, numQubits, c, numQubits - 1 - controlled);
+    stateVector = ddp->multiply(mcx_op, stateVector);
 }
 
 void MQTDDCircuit::ApplyGlobalPhase(double phase)
