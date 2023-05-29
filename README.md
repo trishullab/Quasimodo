@@ -5,7 +5,7 @@
 2. Download and install boost c++ library in home directory
    ``` shell
       wget https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.tar.gz .
-      tar -xvf boost_1_81_0
+      tar -xvf boost_1_81_0.tar.gz
    ```
    Export BOOST_PATH variable as 
    ``` shell
@@ -23,7 +23,7 @@
         bash Miniconda3-latest-Linux-x86_64.sh
         source ~/.basrc
         conda create -n <env_name> python=3.9
-        conda activate tool
+        conda activate <env_name>
     ```
 5. Set Python include path to PYTHON_INCLUDE variable
 6. Install pip
@@ -54,11 +54,12 @@
 2. Build CUDD Library used for BDDs
   ``` shell
       cd cflobdd/cudd-complex-big/
-      run autoreconf
+      autoupdate
+      autoreconf
   ```
   Edit configure to add -fPIC flag to CFLAGS and CXXFlAGS and then run the following after saving the file
   ``` shell
-      run ./configure
+      ./configure
       make
       cd ../..
   ```
