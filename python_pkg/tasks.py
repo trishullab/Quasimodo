@@ -22,12 +22,12 @@ def build_quasimodo(c):
 # Use -undefined dynamic_lookup for MACOS
 def compile_python_module(cpp_name, extension_name):
     invoke.run(
-        "g++ -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -Wunused-but-set-variable -fPIC -I${3} "
+        "g++ -g -O3 -std=c++2a -w -shared -Wall -Wextra -DHAVE_CONFIG_H -Werror -undefined dynamic_lookup -Wunused-but-set-variable -fPIC -I~/Downloads/Setup/boost_1_68_0/ "
         "`python3.9 -m pybind11 --includes` "
         "-I {2} -I../ "
         "{0} "
         "-o {1}`python3.9-config --extension-suffix` "
-        "-L. -lquasimodo -Wl,-rpath,.".format(cpp_name, extension_name, os.environ["PYTHON_INCLUDE"], os.environ["BOOST_PATH"])
+        "-L. -lquasimodo -Wl,-rpath,.".format(cpp_name, extension_name, os.environ["PYTHON_INCLUDE"])
     )
 
 @invoke.task()

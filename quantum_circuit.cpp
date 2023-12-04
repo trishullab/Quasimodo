@@ -525,6 +525,70 @@ void CFLOBDDQuantumCircuit::ApplyGlobalPhase(double phase)
     stateVector = phase_complex * stateVector;
 }
 
+std::string getBits(unsigned int n, int len){
+  std::string s = "";
+  if (n == 0){
+    for (int i = 0; i < len; i++)
+      s += '0';
+  }
+  while (n != 0){
+    int tmp = n % 2;
+    s += (tmp == 0) ? '0' : '1';
+    n = n/2;
+  }
+  while (s.length() < (unsigned int)len)
+    s += '0';
+  std::reverse(s.begin(), s.end());
+  return s;
+}
+
+std::string getInterleavedBits(std::string s1, std::string s2){
+  std::string s = "";
+  for (unsigned int i = 0; i < s1.length(); i++)
+  {
+    s = s + s1[i] + s2[i];
+  }
+  return s;
+}
+
+std::string padBits(std::string s1, unsigned int num){
+  std::string s = "";
+  for (unsigned int i = 0; i < s1.length(); i++)
+  {
+    s = s + s1[i];
+  }
+  for (unsigned int i = s1.length(); i < num; i++)
+  {
+    s = s + '0';
+  }
+  return s;
+}
+
+void CFLOBDDQuantumCircuit::ApplyCUGate(long int a, long int N)
+{
+    unsigned int level = stateVector.root->level;
+    CFLOBDD_COMPLEX_BIG cu_gate = VectorComplexFloatBoost::MkBasisVector(level, 0);
+
+    for (unsigned int i = 1; i < pow(2, numQubits-1); i++)
+	{
+		std::string bit_s = getBits(i, numQubits);
+        bit_s = getInterleavedBits(bit_s, bit_s);
+        bit_s = padBits(bit_s, std::pow(2, level));
+        cu_gate = cu_gate + VectorComplexFloatBoost::MkBasisVector(level, bit_s);
+	}
+
+	for (unsigned int i = 0; i < pow(2, numQubits-1); i++)
+	{
+		std::string bit_s1 = getBits(pow(2, numQubits-1) + i, numQubits);
+		std::string bit_s2 = getBits(pow(2, numQubits-1) + (a * i)%N, numQubits);
+        std::string bit_s = getInterleavedBits(bit_s1, bit_s2);
+        bit_s = padBits(bit_s, std::pow(2, level));
+        cu_gate = cu_gate + VectorComplexFloatBoost::MkBasisVector(level, bit_s);
+	}
+
+    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(cu_gate, stateVector);
+}
+
 long double CFLOBDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
     // stateVector.print(std::cout);
@@ -1231,6 +1295,52 @@ void BDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, lon
     stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
 }
 
+
+
+void BDDQuantumCircuit::ApplyCUGate(long int a, long int N)
+{
+    ADD cu_gate = mgr->addZero();
+
+	for (unsigned int i = 0; i < pow(2, numQubits-1); i++)
+	{
+		ADD tmp_cu_gate = mgr->addOne();
+		std::string bit_s = getBits(i, numQubits);
+		for (unsigned int j = 0; j < numQubits; j++)
+		{
+            // std::cout << i << " " << j << std::endl;
+			if (bit_s[j] == '0')
+				tmp_cu_gate = tmp_cu_gate * ~x_vars[j] * ~y_vars[j];
+			else if (bit_s[j] == '1')
+				tmp_cu_gate = tmp_cu_gate * x_vars[j] * y_vars[j];
+		}
+		cu_gate = cu_gate + tmp_cu_gate;
+	}
+
+	for (unsigned int i = 0; i < pow(2, numQubits-1); i++)
+	{
+		ADD tmp_cu_gate = mgr->addOne();
+		std::string bit_s1 = getBits(pow(2, numQubits-1) + i, numQubits);
+		std::string bit_s2 = getBits(pow(2, numQubits-1) + (a * i)%N, numQubits);
+		for (unsigned int j = 0; j < numQubits; j++)
+		{
+			if (bit_s1[j] == '0')
+				tmp_cu_gate = tmp_cu_gate * ~y_vars[j];
+			else if (bit_s1[j] == '1')
+				tmp_cu_gate = tmp_cu_gate * y_vars[j];
+
+			if (bit_s2[j] == '0')
+				tmp_cu_gate = tmp_cu_gate * ~x_vars[j];
+			else if (bit_s2[j] == '1')
+				tmp_cu_gate = tmp_cu_gate * x_vars[j];
+		}
+		cu_gate = cu_gate + tmp_cu_gate;
+	}
+
+    stateVector = cu_gate.MatrixMultiply(stateVector, x_vars);
+    stateVector = stateVector.SwapVariables(y_vars, x_vars);
+
+}
+
 long double BDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& qubit_vals)
 {
     // stateVector.print(2*numQubits, 2);
@@ -1847,6 +1957,11 @@ void WeightedBDDQuantumCircuit::ApplyCSwapGate(long int controller, long int ind
         C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
         stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, stateVector);
     }
+}
+
+void WeightedBDDQuantumCircuit::ApplyCUGate(long int a, long int N)
+{
+    abort();
 }
 
 void WeightedBDDQuantumCircuit::ApplyGlobalPhase(double phase)

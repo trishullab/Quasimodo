@@ -59,6 +59,8 @@ class QuantumCircuit {
         virtual void ApplyMCXGate(std::vector<long int> controllers, long int controllerd) = 0;
         // CSWAP or Fredkin gate
         virtual void ApplyCSwapGate(long int controller, long int index1, long int index2) = 0; 
+        // Specific to Shors
+        virtual void ApplyCUGate(long int a, long int N) = 0;
         // Obtain Probability
         virtual long double GetProbability(std::map<unsigned int, int>& qubit_vals) = 0;
         // Measure
@@ -110,6 +112,7 @@ class CFLOBDDQuantumCircuit : public QuantumCircuit {
         void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyMCXGate(std::vector<long int> controllers, long int controlled);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        void ApplyCUGate(long int a, long int N);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
@@ -157,6 +160,7 @@ class BDDQuantumCircuit : public QuantumCircuit {
         void ApplyMCXGate(std::vector<long int> controllers, long int controlled);
         void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        void ApplyCUGate(long int a, long int N);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
@@ -212,6 +216,7 @@ class WeightedBDDQuantumCircuit : public QuantumCircuit
         void ApplyCCPGate(long int controller1, long int controller2, long int controlled, double theta);
         void ApplyMCXGate(std::vector<long int> controllers, long int controllerd);
         void ApplyCSwapGate(long int controller, long int index1, long int index2); 
+        void ApplyCUGate(long int a, long int N);
         long double GetProbability(std::map<unsigned int, int>& qubit_vals);
         std::string Measure();
         std::string MeasureAndCollapse(std::vector<long int>& indices);
