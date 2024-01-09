@@ -33,12 +33,14 @@ qc.x(numQubits)
 for i in range(0, numQubits + 1):
     qc.h(i)
 
-for i in range(0, numQubits):
-    qc.cx(i, numQubits)
 
 for i in range(0, numQubits):
     if s[i] == '1':
         qc.x(i)
+
+
+for i in range(0, numQubits):
+    qc.cx(i, numQubits)
 
 for i in range(0, numQubits):
     qc.h(i)
@@ -47,6 +49,8 @@ sampled_string = qc.measure()[:-1]
 sample_count = 1
 
 iter_count = 0
+
+print(s, sampled_string)
 
 while (sampled_string != allOnes) and iter_count < numQubits:
     sample_count += 1
