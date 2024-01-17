@@ -1,7 +1,7 @@
 #ifndef _QUANTUM_GATE
 #define _QUANTUM_GATE
 
-#include "MQT_DD/dd_package/include/dd/Package.hpp"
+#include "dd_package/include/dd/Package.hpp"
 #include "cflobdd/CFLOBDD/matrix1234_complex_float_boost.h"
 #include <random>
 
@@ -63,7 +63,7 @@ class WeightedCFLOBDDQuantumGate : public QuantumGate {
         WeightedCFLOBDDQuantumGate();
         ~WeightedCFLOBDDQuantumGate();
         void Print();
-        WeightedCFLOBDDQuantumGate GetGate() {return gate;}
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL GetGate() {return gate;}
 
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL gate;

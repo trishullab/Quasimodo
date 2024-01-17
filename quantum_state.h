@@ -1,7 +1,7 @@
 #ifndef _QUANTUM_STATE
 #define _QUANTUM_STATE
 
-#include "MQT_DD/dd_package/include/dd/Package.hpp"
+#include "dd_package/include/dd/Package.hpp"
 #include "cflobdd/CFLOBDD/matrix1234_complex_float_boost.h"
 #include "cflobdd/CFLOBDD/wmatrix1234_complex_fb_mul.h"
 #include <random>

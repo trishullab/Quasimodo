@@ -2619,39 +2619,94 @@ unsigned long long int WeightedCFLOBDDQuantumCircuit::GetPathCount(long double p
 } 
 
 
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateF_WCFLOBDD(std::string indices, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, int, unsigned int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, 1, 0);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);;
+    }
+    else
+    {
+        auto F1 = CreateGateF_WCFLOBDD(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF_WCFLOBDD(indices.substr(indices.length()/2), f); 
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateHadamardGate(std::string indices)
 {
-    abort();
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for (unsigned int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved);
+    return new WeightedCFLOBDDQuantumGate(H);
 }
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateIdentityGate(std::string indices)
 {
-    abort();
+    long int level = ceil(log2(indices.length()));
+    auto I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+    return new WeightedCFLOBDDQuantumGate(I);
 }
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateNOTGate(std::string indices)
 {
-    abort();
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for (unsigned int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkNegationMatrixInterleaved);
+    return new WeightedCFLOBDDQuantumGate(H);
 }
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::KroneckerProduct(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2)
 {
-    abort();
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetGate();
+    assert(c1.root->level == c2.root->level);
+    auto c = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(c1, c2);
+    return new WeightedCFLOBDDQuantumGate(c);
 }
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
 {
-    abort();
+    if (controller < controlled)
+    {
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controller, controlled);
+        return new WeightedCFLOBDDQuantumGate(C);
+    }
+    else
+    {
+        auto S = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(stateVector.root->level, controlled, controller);
+        auto C = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controlled, controller);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(C, S);
+        C = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(S, C);
+        return new WeightedCFLOBDDQuantumGate(C); 
+    }
 }
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::GateGateApply(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2)
 {
-    abort();
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetGate();
+    assert(c1.root->level == c2.root->level);
+    auto c = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c1, c2);
+    return new WeightedCFLOBDDQuantumGate(c);
 }
 
 void WeightedCFLOBDDQuantumCircuit::ApplyGate(WeightedCFLOBDDQuantumGate* m)
 {
-    abort();
+    auto c = m->GetGate();
+    assert(c.root->level == stateVector.root->level);
+    stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c, stateVector); 
 }
 
 WeightedCFLOBDDQuantumState* WeightedCFLOBDDQuantumCircuit::GetState()
