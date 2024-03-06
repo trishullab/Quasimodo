@@ -62,10 +62,11 @@ for i in range(0, numQubits):
     qc.h(i)
 
 memory = qc.size()
+print(memory)
 equations = []
 for i in range(0, 2 * numQubits):
     sampled_string = qc.measure()
-    sampled_string = parse_string(sampled_string)
+    # sampled_string = parse_string(sampled_string)
     if not sampled_string in equations:
         equations.append(sampled_string)
 
