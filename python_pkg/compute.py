@@ -16,12 +16,11 @@ def output_avg_time(filename):
                 if tokens[0] == 'Correct':
                     time_taken = time_taken + float(tokens[4])
                     count = count + 1
-                    memory = memory + int(tokens[12])
         short_file_name = filename.split("/")[-1]
         if count == 0:
-            print(short_file_name, count, total_count, time_taken, memory)
+            print(short_file_name, count, total_count, time_taken)
         else:
-            print(short_file_name,  count, total_count, time_taken/count, memory//count)
+            print(short_file_name,  count, total_count, time_taken/count)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

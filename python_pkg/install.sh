@@ -17,8 +17,8 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh .
 chmod a+x Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 source ~/.bashrc
-conda create -n cflobdds python=3.9
-conda activate cflobdds
+conda create -n tool python=3.9
+conda activate tool
 
 export PYTHON_INCLUDE=`python -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])"`
 
@@ -64,8 +64,6 @@ check_and_install_pkg "texlive-latex-base"
 git clone https://github.com/trishullab/Quasimodo.git
 cd Quasimodo/
 git submodule update --init
-git checkout cflobdds_fmcad
-git pull origin cflobdds_fmcad 
 
 # Build CUDD Library used for BDDs
 cd cflobdd/cudd-complex-big/
@@ -80,3 +78,12 @@ sed -i 's/: ${CXXFLAGS="-Wall -Wextra -std=c++0x -g -O3"}/: ${CXXFLAGS="-Wall -W
 ./configure
 make 
 cd ../..
+
+# Building Quasimodo
+cd python_pkg/
+mkdir output/
+# Not required; already fixed
+# sed -i 's/-I${3}/-I{3}/g' tasks.py
+invoke build-quasimodo
+invoke build-pybind11
+
