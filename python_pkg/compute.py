@@ -8,6 +8,7 @@ def output_avg_time(filename):
         count = 0
         time_taken = 0
         total_count = 0
+        memory = 0
         for line in inp.readlines():
             if "time" in line:
                 tokens = re.split(" |\n", line)

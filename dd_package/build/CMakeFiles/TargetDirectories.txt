@@ -1,0 +1,3 @@
+/Users/meghana/Desktop/Meghana/Research/MQT_DD/dd_package/build/CMakeFiles/DDPackage.dir
+/Users/meghana/Desktop/Meghana/Research/MQT_DD/dd_package/build/CMakeFiles/edit_cache.dir
+/Users/meghana/Desktop/Meghana/Research/MQT_DD/dd_package/build/CMakeFiles/rebuild_cache.dir

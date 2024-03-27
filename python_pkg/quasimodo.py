@@ -1,7 +1,7 @@
 import pyquasimodo
 
 """
-    model_str : str -> {"CFLOBDD", "BDD", "WBDD"}
+    model_str : str -> {"CFLOBDD", "BDD", "WBDD", "WCFLOBDD"}
     numQubits: unsigned int
     seed: int
 """
@@ -12,6 +12,10 @@ def QuantumCircuit(model_str = "CFLOBDD", numQubits = 0, seed = 0):
         return pyquasimodo.BDDQuantumCircuit(numQubits, seed)
     elif model_str == "WBDD":
         return pyquasimodo.WeightedBDDQuantumCircuit(numQubits, seed)
+    elif model_str == "WCFLOBDD":
+        return pyquasimodo.WeightedCFLOBDDQuantumCircuit(numQubits, seed)
+    elif model_str == "MQTDD":
+        return pyquasimodo.MQTDDCircuit(numQubits, seed)
     else:
         print ('Unsupported backend: ', model_str)
         exit(1)
