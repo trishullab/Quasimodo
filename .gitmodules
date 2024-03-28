@@ -1,3 +1,7 @@
 [submodule "cflobdd"]
 	path = cflobdd
 	url = https://github.com/trishullab/cflobdd.git
+
+[submodule "MQT_DD/dd_package"]
+    path = MQT_DD/dd_package
+    url = https://github.com/cda-tum/dd_package.git
