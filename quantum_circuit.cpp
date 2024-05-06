@@ -625,7 +625,8 @@ long double CFLOBDDQuantumCircuit::GetProbability(std::map<unsigned int, int>& q
 
 std::string CFLOBDDQuantumCircuit::Measure() 
 {
-    // stateVector.print(std::cout);
+    // std::cout << stateVector << std::endl;
+
     auto tmp = VectorComplexFloatBoost::VectorWithAmplitude(stateVector);
     tmp.CountPaths();
     return VectorComplexFloatBoost::Sampling(tmp, true).substr(0, numQubits); 
@@ -1216,7 +1217,7 @@ void BDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int
             ADD tmp = mgr->addOne();
             for (unsigned int j = 0; j < numControllers; j++)
             {
-                tmp *= y_vars[j] * x_vars[j];   
+                tmp *= y_vars[controllers[j]] * x_vars[controllers[j]];   
             }
             MCXGate += tmp * ~y_vars[controlled] * x_vars[controlled] + tmp * y_vars[controlled] * ~x_vars[controlled];   
         }
@@ -1227,11 +1228,11 @@ void BDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long int
             {
                 if (perm[j] == '0')
                 {
-                    tmp *= ~y_vars[j] * ~x_vars[j];
+                    tmp *= ~y_vars[controllers[j]] * ~x_vars[controllers[j]];
                 }
                 else
                 {
-                    tmp *= y_vars[j] * x_vars[j];   
+                    tmp *= y_vars[controllers[j]] * x_vars[controllers[j]];   
                 }
             }
             MCXGate += tmp * ~y_vars[controlled] * ~x_vars[controlled] + tmp * y_vars[controlled] * x_vars[controlled];
