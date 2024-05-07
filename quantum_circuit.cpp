@@ -444,8 +444,20 @@ void CFLOBDDQuantumCircuit::ApplyMCXGate(std::vector<long int> controllers, long
     sort(controllers.begin(), controllers.end());
     // assumption controllers < controlled, TODO: change to a more generalized version
 
-    auto C = Matrix1234ComplexFloatBoost::MkMCX(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controllers, controlled);
-    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
+    if (controllers[controllers.size()-1] < controlled){
+        auto C = Matrix1234ComplexFloatBoost::MkMCX(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controllers, controlled);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
+    }
+    else
+    {
+        auto S = Matrix1234ComplexFloatBoost::MkSwapGate(stateVector.root->level, controlled, controllers[controllers.size()-1]);
+        auto new_controlled = controllers[controllers.size()-1];
+        controllers[controllers.size()-1] = controlled;
+        auto C = Matrix1234ComplexFloatBoost::MkMCX(stateVector.root->level, std::pow(2, stateVector.root->level - 1), controllers, new_controlled);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, S);
+        C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
+        stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C, stateVector);
+    }
 
         
 }
