@@ -527,12 +527,24 @@ void CFLOBDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1,
 
 void CFLOBDDQuantumCircuit::ApplySXGate(unsigned int index)
 {
-    abort();
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+    auto H = ApplyGateF(std::pow(2, stateVector.root->level-1), index, Matrix1234ComplexFloatBoost::MkSXGate);
+    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, stateVector);
 }
 
 void CFLOBDDQuantumCircuit::ApplySYGate(unsigned int index)
 {
-    abort();
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+    auto H = ApplyGateF(std::pow(2, stateVector.root->level-1), index, Matrix1234ComplexFloatBoost::MkSYGate);
+    stateVector = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, stateVector);
 }
 
 
@@ -1323,12 +1335,64 @@ void BDDQuantumCircuit::ApplyCSwapGate(long int controller, long int index1, lon
 
 void BDDQuantumCircuit::ApplySXGate(unsigned int index)
 {
-    abort();
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+
+    CUDD_VALUE_TYPE one_plus_i;
+    mpfr_init_set_d(one_plus_i.real, 1/2, RND_TYPE);
+    mpfr_init_set_d(one_plus_i.imag, 1/2, RND_TYPE);
+    ADD one_plus_i_val = mgr->constant(one_plus_i);
+    mpfr_clear(one_plus_i.real); mpfr_clear(one_plus_i.imag);
+
+
+    CUDD_VALUE_TYPE one_minus_i;
+    mpfr_init_set_d(one_minus_i.real, 1/2, RND_TYPE);
+    mpfr_init_set_d(one_minus_i.imag, -1/2, RND_TYPE);
+    ADD one_minus_i_val = mgr->constant(one_minus_i);
+    mpfr_clear(one_minus_i.real); mpfr_clear(one_minus_i.imag);
+
+    ADD IDGate = ~y_vars[index] * ~x_vars[index] * one_plus_i_val
+                 + ~y_vars[index] * x_vars[index] * one_minus_i_val
+                 + y_vars[index] * ~x_vars[index] * one_minus_i_val
+                 + y_vars[index] * x_vars[index] * one_plus_i_val;
+    std::vector<ADD> tmp_x, tmp_y; 
+    tmp_x.push_back(x_vars[index]); tmp_y.push_back(y_vars[index]);
+    stateVector = IDGate.MatrixMultiply(stateVector, tmp_x);
+    stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
 }
 
 void BDDQuantumCircuit::ApplySYGate(unsigned int index)
 {
-    abort();
+    if (checkForInit(numQubits) == false)
+    {
+        std::cout << "Number of Qubits is unset" << std::endl;
+        abort();   
+    }
+
+    CUDD_VALUE_TYPE one_plus_i;
+    mpfr_init_set_d(one_plus_i.real, 1/2, RND_TYPE);
+    mpfr_init_set_d(one_plus_i.imag, 1/2, RND_TYPE);
+    ADD one_plus_i_val = mgr->constant(one_plus_i);
+    mpfr_clear(one_plus_i.real); mpfr_clear(one_plus_i.imag);
+
+
+    CUDD_VALUE_TYPE one_minus_i;
+    mpfr_init_set_d(one_minus_i.real, -1/2, RND_TYPE);
+    mpfr_init_set_d(one_minus_i.imag, -1/2, RND_TYPE);
+    ADD one_minus_i_val = mgr->constant(one_minus_i);
+    mpfr_clear(one_minus_i.real); mpfr_clear(one_minus_i.imag);
+
+    ADD IDGate = ~y_vars[index] * ~x_vars[index] * one_plus_i_val
+                 + ~y_vars[index] * x_vars[index] * one_minus_i_val
+                 + y_vars[index] * ~x_vars[index] * one_plus_i_val
+                 + y_vars[index] * x_vars[index] * one_plus_i_val;
+    std::vector<ADD> tmp_x, tmp_y; 
+    tmp_x.push_back(x_vars[index]); tmp_y.push_back(y_vars[index]);
+    stateVector = IDGate.MatrixMultiply(stateVector, tmp_x);
+    stateVector = stateVector.SwapVariables(tmp_y, tmp_x);
 }
 
 
