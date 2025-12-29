@@ -124,6 +124,24 @@ namespace dd {
             }
         }
 
+        [[nodiscard]] inline bool isIdentity() const { return (flags & static_cast<std::uint8_t>(16U)) != 0; }
+        [[nodiscard]] inline bool isSymmetric() const { return (flags & static_cast<std::uint8_t>(32U)) != 0; }
+
+        inline void setIdentity(bool identity) {
+            if (identity) {
+                flags = (flags | static_cast<std::uint8_t>(16U));
+            } else {
+                flags = (flags & static_cast<std::uint8_t>(~16U));
+            }
+        }
+        inline void setSymmetric(bool symmetric) {
+            if (symmetric) {
+                flags = (flags | static_cast<std::uint8_t>(32U));
+            } else {
+                flags = (flags & static_cast<std::uint8_t>(~32U));
+            }
+        }
+
         static inline std::uint8_t alignDensityNodeNode(dNode*& p) {
             const auto flags = static_cast<std::uint8_t>(getDensityMatrixTempFlags(p));
             alignDensityNode(p);

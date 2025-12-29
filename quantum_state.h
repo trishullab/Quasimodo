@@ -14,6 +14,7 @@ class QuantumState {
         // Destructor
         virtual ~QuantumState();
         virtual void Print() = 0;
+        virtual unsigned int Size() = 0;
 };
 
 using namespace CFL_OBDD;
@@ -25,6 +26,7 @@ class CFLOBDDQuantumState : public QuantumState {
         ~CFLOBDDQuantumState();
         void Print();
         CFLOBDD_COMPLEX_BIG GetState() {return state;}
+        unsigned int Size();
 
     private:
         CFLOBDD_COMPLEX_BIG state;
@@ -39,6 +41,7 @@ class BDDQuantumState : public QuantumState {
         ~BDDQuantumState();
         void Print();
         ADD GetState() {return state;}
+        unsigned int Size();
     private:
         ADD state;
 };
@@ -53,6 +56,7 @@ class WeightedBDDQuantumState : public QuantumState
         WeightedBDDQuantumState();
         ~WeightedBDDQuantumState();
         void Print();
+        unsigned int Size();
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL GetState() {return state;}
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL state;
@@ -65,6 +69,7 @@ class WeightedCFLOBDDQuantumState : public QuantumState {
         ~WeightedCFLOBDDQuantumState();
         void Print();
         WeightedCFLOBDDQuantumState GetState() {return state;}
+        unsigned int Size();
 
     private:
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL state;
@@ -80,6 +85,7 @@ class MQTDDQuantumState : public QuantumState
         ~MQTDDQuantumState();
         void Print();
         vEdge GetState() {return state;}
+        unsigned int Size();
     private:
         vEdge state;
         // std::unique_ptr<Package<DDPackageConfig>> ddp;

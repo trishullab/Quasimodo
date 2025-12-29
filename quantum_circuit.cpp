@@ -685,9 +685,11 @@ unsigned long long int CFLOBDDQuantumCircuit::GetPathCount(long double prob)
 
 unsigned int CFLOBDDQuantumCircuit::Size()
 {
-    unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
-    stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
-    return (nodeCount + edgeCount);
+    stateVector.root->rootConnection.returnMapHandle.print(std::cout);
+    return 0;
+    // unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
+    // stateVector.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
+    // return (nodeCount + edgeCount);
 }
 
 CFLOBDD_COMPLEX_BIG CreateGateF(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int))
@@ -710,9 +712,50 @@ CFLOBDD_COMPLEX_BIG CreateGateF(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(uns
     }
 }
 
+CFLOBDD_COMPLEX_BIG CreateGateF2(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int, unsigned int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, 0);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateF2(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF2(indices.substr(indices.length()/2), f); 
+        return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+CFLOBDD_COMPLEX_BIG CreateGateFWithParam(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int, double), double theta)
+{
+    if (indices.find('0') == std::string::npos)
+    {
+
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, theta);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateFWithParam(indices.substr(0, indices.length()/2), f, theta);
+        auto F2 = CreateGateFWithParam(indices.substr(indices.length()/2), f, theta);
+        return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
 CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateIdentityGate(std::string indices)
 {
-    long int level = ceil(log2(indices.length()));
+    long int level = ceil(log2(indices.length())) + 1;
     auto I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
     return new CFLOBDDQuantumGate(I);
 }
@@ -738,6 +781,37 @@ CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateNOTGate(std::string indices)
     return new CFLOBDDQuantumGate(H);
 }
 
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateSGate(std::string indices, bool transpose = false)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    if (transpose) {
+        // auto H = CreateGateFWithParam(new_indices, Matrix1234ComplexFloatBoost::MkPhaseShiftGateInterleaved, -0.5);
+        auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkSdgGateInterleaved);
+        return new CFLOBDDQuantumGate(H);
+    }
+    auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkSGateInterleaved);
+    return new CFLOBDDQuantumGate(H);
+}
+
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateTGate(std::string indices, bool transpose = false)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    if (transpose) {
+        // auto H = CreateGateFWithParam(new_indices, Matrix1234ComplexFloatBoost::MkPhaseShiftGateInterleaved, -0.25);
+        auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkTdgGateInterleaved);
+        return new CFLOBDDQuantumGate(H);
+    }
+    // auto H = CreateGateFWithParam(new_indices, Matrix1234ComplexFloatBoost::MkPhaseShiftGateInterleaved, 0.25);
+    auto H = CreateGateF(new_indices, Matrix1234ComplexFloatBoost::MkTGateInterleaved);
+    return new CFLOBDDQuantumGate(H);
+}
+
 CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
 {
     if (controller < controlled)
@@ -753,6 +827,16 @@ CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateCNOTGate(long int controller, l
         C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(S, C);
         return new CFLOBDDQuantumGate(C); 
     }
+}
+
+CFLOBDDQuantumDensity* CFLOBDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF2(new_indices, VectorComplexFloatBoost::MkBasisVector);
+    return new CFLOBDDQuantumDensity(H);
 }
 
 void CFLOBDDQuantumCircuit::ApplyGate(CFLOBDDQuantumGate* m)
@@ -780,6 +864,68 @@ CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::GateGateApply(CFLOBDDQuantumGate* m1,
     assert(c1.root->level == c2.root->level);
     auto c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c1, c2);
     return new CFLOBDDQuantumGate(c);
+}
+
+CFLOBDDQuantumState* CFLOBDDQuantumCircuit::StateStateApply(CFLOBDDQuantumState* m1, CFLOBDDQuantumState* m2)
+{
+    auto c1 = m1->GetState();
+    auto c2 = m2->GetState();
+    assert(c1.root->level == c2.root->level);
+    auto c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c1, c2);
+    return new CFLOBDDQuantumState(c);
+}
+
+CFLOBDDQuantumDensity* CFLOBDDQuantumCircuit::DensityDensityApply(CFLOBDDQuantumDensity* m1, CFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetDensity();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    auto c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c1, c2);
+    return new CFLOBDDQuantumDensity(c);
+}
+
+long double CFLOBDDQuantumCircuit::ComputeL1Norm(CFLOBDDQuantumDensity* m1, CFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetDensity();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    return VectorComplexFloatBoost::ComputeL1Norm(c1, c2);
+}
+
+CFLOBDDQuantumDensity* CFLOBDDQuantumCircuit::ComputeReducedDensityMatrix(CFLOBDDQuantumGate* m1, CFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    // TODO:: ConjugateTranspose only does conjugate for now
+    // std::cout << "Printing c1" << std::endl;
+    // c1.print(std::cout);
+    // std::cout << "Printing c2" << std::endl;
+    // c2.print(std::cout);
+    auto c1_conj_t = Matrix1234ComplexFloatBoost::ConjugateTranspose(c1);
+    // std::cout << "Printing c1_conj_t" << std::endl;
+    // c1_conj_t.print(std::cout);
+    auto c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c2, c1_conj_t);
+    // std::cout << "Printing intermediate c" << std::endl;
+    // c.print(std::cout);
+    c = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(c1, c);
+    // std::cout << "Printing result c" << std::endl;
+    // c.print(std::cout);
+    return new CFLOBDDQuantumDensity(c);
+}
+
+CFLOBDDQuantumState* CFLOBDDQuantumCircuit::GetInitState()
+{
+    unsigned int level = ceil(log2(numQubits)) + 1;
+    auto init_state_vector = VectorComplexFloatBoost::MkBasisVector(level, 0);
+    return new CFLOBDDQuantumState(init_state_vector);
+}
+
+CFLOBDDQuantumDensity* CFLOBDDQuantumCircuit::GetInitDensity()
+{
+    unsigned int level = ceil(log2(numQubits)) + 1;
+    auto init_state_vector = VectorComplexFloatBoost::MkBasisVector(level, 0);
+    return new CFLOBDDQuantumDensity(init_state_vector);
 }
 
 CFLOBDDQuantumState* CFLOBDDQuantumCircuit::GetState()
@@ -1563,6 +1709,18 @@ BDDQuantumGate* BDDQuantumCircuit::CreateNOTGate(std::string indices)
     return new BDDQuantumGate(gate);
 }
 
+BDDQuantumGate* BDDQuantumCircuit::CreateSGate(std::string indices, bool transpose = false)
+{
+    abort(); // To be implemented
+    return nullptr;
+}
+
+BDDQuantumGate* BDDQuantumCircuit::CreateTGate(std::string indices, bool transpose = false)
+{
+    abort(); // To be implemented
+    return nullptr;
+}
+
 BDDQuantumGate* BDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
 {
     ADD CNOTGate = ~x_vars[controller] * ~x_vars[controlled] * ~y_vars[controller] * ~y_vars[controlled]
@@ -1579,6 +1737,12 @@ BDDQuantumGate* BDDQuantumCircuit::CreateCNOTGate(long int controller, long int 
         }
     }
     return new BDDQuantumGate(CNOTGate);
+}
+
+BDDQuantumDensity* BDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
+{
+    abort(); // To be implemented
+    return nullptr;
 }
 
 BDDQuantumGate* BDDQuantumCircuit::KroneckerProduct(BDDQuantumGate* m1, BDDQuantumGate* m2)
@@ -1598,6 +1762,27 @@ BDDQuantumGate* BDDQuantumCircuit::GateGateApply(BDDQuantumGate* m1, BDDQuantumG
     return new BDDQuantumGate(c);
 }
 
+BDDQuantumState* BDDQuantumCircuit::StateStateApply(BDDQuantumState* m1, BDDQuantumState* m2)
+{
+    abort();
+}
+
+BDDQuantumDensity* BDDQuantumCircuit::DensityDensityApply(BDDQuantumDensity* m1, BDDQuantumDensity* m2)
+{
+    abort();
+}
+
+long double BDDQuantumCircuit::ComputeL1Norm(BDDQuantumDensity* m1, BDDQuantumDensity* m2)
+{
+    abort();
+}
+
+BDDQuantumDensity* BDDQuantumCircuit::ComputeReducedDensityMatrix(BDDQuantumGate* m1, BDDQuantumDensity* m2)
+{
+    abort(); // To be implemented
+    return nullptr;
+}
+
 void BDDQuantumCircuit::ApplyGate(BDDQuantumGate* m)
 {
     auto c = m->GetGate();
@@ -1606,6 +1791,16 @@ void BDDQuantumCircuit::ApplyGate(BDDQuantumGate* m)
     tmp_x.push_back(x_vars[0]);  tmp_x.push_back(x_vars[2]);
     stateVector = stateVector.SwapVariables(x_vars, y_vars);
     stateVector = c.MatrixMultiply(stateVector, y_vars);
+}
+
+BDDQuantumState* BDDQuantumCircuit::GetInitState()
+{
+    abort(); // To be implemented
+}
+
+BDDQuantumDensity* BDDQuantumCircuit::GetInitDensity()
+{
+    abort(); // To be implemented
 }
 
 BDDQuantumState* BDDQuantumCircuit::GetState()
@@ -2150,6 +2345,16 @@ WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateNOTGate(std::string ind
     abort();
 }
 
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateSGate(std::string indices, bool transpose = false)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateTGate(std::string indices, bool transpose = false)
+{
+    abort();
+}
+
 WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::KroneckerProduct(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2)
 {
     abort();
@@ -2160,14 +2365,50 @@ WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateCNOTGate(long int contr
     abort();
 }
 
+WeightedBDDQuantumDensity* WeightedBDDQuantumCircuit::CreateReducedDensityMatrix(std::string s)
+{
+    abort();
+}
+
 WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::GateGateApply(WeightedBDDQuantumGate* m1, WeightedBDDQuantumGate* m2)
 {
     abort();
 }
 
+WeightedBDDQuantumState* WeightedBDDQuantumCircuit::StateStateApply(WeightedBDDQuantumState* m1, WeightedBDDQuantumState* m2)
+{
+    abort();
+}
+
+WeightedBDDQuantumDensity* WeightedBDDQuantumCircuit::DensityDensityApply(WeightedBDDQuantumDensity* m1, WeightedBDDQuantumDensity* m2)
+{
+    abort();
+}
+
+long double WeightedBDDQuantumCircuit::ComputeL1Norm(WeightedBDDQuantumDensity* m1, WeightedBDDQuantumDensity* m2)
+{
+    abort();
+}
+
+WeightedBDDQuantumDensity* WeightedBDDQuantumCircuit::ComputeReducedDensityMatrix(WeightedBDDQuantumGate* m1, WeightedBDDQuantumDensity* m2)
+{
+    abort(); // To be implemented
+    return nullptr;
+}
+
 void WeightedBDDQuantumCircuit::ApplyGate(WeightedBDDQuantumGate* m)
 {
     abort();
+}
+
+WeightedBDDQuantumState* WeightedBDDQuantumCircuit::GetInitState()
+{
+    abort(); // To be implemented
+}
+
+WeightedBDDQuantumDensity* WeightedBDDQuantumCircuit::GetInitDensity()
+{
+    abort(); // To be implemented
 }
 
 WeightedBDDQuantumState* WeightedBDDQuantumCircuit::GetState()
@@ -2182,8 +2423,8 @@ WeightedBDDQuantumState* WeightedBDDQuantumCircuit::GetState()
 WeightedCFLOBDDQuantumCircuit::WeightedCFLOBDDQuantumCircuit(unsigned int numQubits, int seed) : QuantumCircuit(numQubits, seed)
 {
     // Initialize
-    WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable_Ann();
+    WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();	
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitReduceCache();
 	WeightedMatrix1234ComplexFloatBoostMul::Matrix1234Initializer();
@@ -2716,6 +2957,47 @@ WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateF_WCFLOBDD(std::string indice
     }
 }
 
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateFWithParam_WCFLOBDD(std::string indices, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, double, int, unsigned int), double theta)
+{
+    if (indices.find('0') == std::string::npos)
+    {
+
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, theta, 1, 0);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateFWithParam_WCFLOBDD(indices.substr(0, indices.length()/2), f, theta);
+        auto F2 = CreateGateFWithParam_WCFLOBDD(indices.substr(indices.length()/2), f, theta);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateF2_WCFLOBDD(std::string indices, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, unsigned int, int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, 0, 1);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateF2_WCFLOBDD(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF2_WCFLOBDD(indices.substr(indices.length()/2), f);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateHadamardGate(std::string indices)
 {
@@ -2729,7 +3011,7 @@ WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateHadamardGate(st
 
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateIdentityGate(std::string indices)
 {
-    long int level = ceil(log2(indices.length()));
+    long int level = ceil(log2(indices.length())) + 1;
     auto I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
     return new WeightedCFLOBDDQuantumGate(I);
 }
@@ -2741,6 +3023,34 @@ WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateNOTGate(std::st
     for (unsigned int i = 0; i < indices.length(); i++)
         new_indices[i] = indices[i];
     auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkNegationMatrixInterleaved);
+    return new WeightedCFLOBDDQuantumGate(H);
+}
+
+WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateSGate(std::string indices, bool transpose = false)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    if (transpose) {
+        auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkSdgGate);
+        return new WeightedCFLOBDDQuantumGate(H);
+    }
+    auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkSGate);
+    return new WeightedCFLOBDDQuantumGate(H);
+}
+
+WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateTGate(std::string indices, bool transpose = false)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    if (transpose) {
+        auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkTdgGate);
+        return new WeightedCFLOBDDQuantumGate(H);
+    }
+    auto H = CreateGateF_WCFLOBDD(new_indices, WeightedMatrix1234ComplexFloatBoostMul::MkTGate);
     return new WeightedCFLOBDDQuantumGate(H);
 }
 
@@ -2770,6 +3080,16 @@ WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateCNOTGate(long i
     }
 }
 
+WeightedCFLOBDDQuantumDensity* WeightedCFLOBDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for ( int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto H = CreateGateF2_WCFLOBDD(new_indices, WeightedVectorComplexFloatBoostMul::MkBasisVector);
+    return new WeightedCFLOBDDQuantumDensity(H);
+}
+
 WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::GateGateApply(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2)
 {
     auto c1 = m1->GetGate();
@@ -2779,11 +3099,65 @@ WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::GateGateApply(Weighte
     return new WeightedCFLOBDDQuantumGate(c);
 }
 
+WeightedCFLOBDDQuantumState* WeightedCFLOBDDQuantumCircuit::StateStateApply(WeightedCFLOBDDQuantumState* m1, WeightedCFLOBDDQuantumState* m2)
+{
+    abort();
+}
+
+WeightedCFLOBDDQuantumDensity* WeightedCFLOBDDQuantumCircuit::DensityDensityApply(WeightedCFLOBDDQuantumDensity* m1, WeightedCFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetDensity();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    auto c = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c1, c2);
+    return new WeightedCFLOBDDQuantumDensity(c);
+}
+
+long double WeightedCFLOBDDQuantumCircuit::ComputeL1Norm(WeightedCFLOBDDQuantumDensity* m1, WeightedCFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetDensity();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    return WeightedVectorComplexFloatBoostMul::ComputeL1Norm(c1, c2);
+}
+
+WeightedCFLOBDDQuantumDensity* WeightedCFLOBDDQuantumCircuit::ComputeReducedDensityMatrix(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetGate();
+    auto c2 = m2->GetDensity();
+    assert(c1.root->level == c2.root->level);
+    // TODO:: ConjugateTranspose only does conjugate for now
+    auto c1_conj_t = WeightedMatrix1234ComplexFloatBoostMul::ConjugateTranspose(c1);
+    // std::cout << "Printing c2" << std::endl;
+    // c2.print(std::cout);
+    // std::cout << "Printing c1_conj_t" << std::endl;
+    // c1_conj_t.print(std::cout);
+    auto c = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c2, c1_conj_t);
+    // std::cout << "Printing c after first multiply" << std::endl;
+    // c.print(std::cout);
+    c = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c1, c);
+    // std::cout << "Printing c after second multiply" << std::endl;
+    // c.print(std::cout);
+    return new WeightedCFLOBDDQuantumDensity(c);
+}
+
 void WeightedCFLOBDDQuantumCircuit::ApplyGate(WeightedCFLOBDDQuantumGate* m)
 {
     auto c = m->GetGate();
     assert(c.root->level == stateVector.root->level);
     stateVector = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c, stateVector); 
+}
+
+WeightedCFLOBDDQuantumState* WeightedCFLOBDDQuantumCircuit::GetInitState()
+{
+    abort(); // To be implemented
+}
+
+WeightedCFLOBDDQuantumDensity* WeightedCFLOBDDQuantumCircuit::GetInitDensity()
+{
+    unsigned int level = ceil(log2(numQubits)) + 1;
+    auto init_state_vector = WeightedVectorComplexFloatBoostMul::MkBasisVector(level, 0);
+    return new WeightedCFLOBDDQuantumDensity(init_state_vector);
 }
 
 WeightedCFLOBDDQuantumState* WeightedCFLOBDDQuantumCircuit::GetState()
@@ -3017,8 +3391,15 @@ mEdge CreateGateF(std::string indices, std::unique_ptr<Package<DDPackageConfig>>
     else
     {
         auto F1 = CreateGateF(indices.substr(0, indices.length()/2), ddp, mat);
-        auto F2 = CreateGateF(indices.substr(indices.length()/2), ddp, mat); 
-        return ddp->kronecker(F1, F2, true);
+        auto F2 = CreateGateF(indices.substr(indices.length()/2), ddp, mat);
+        // std::cout << "F1 Gate Matrix: for " << indices.substr(0, indices.length()/2) << std::endl;
+        // ddp->printMatrix(F1);
+        // std::cout << "F2 Gate Matrix: for " << indices.substr(indices.length()/2) << std::endl;
+        // ddp->printMatrix(F2);
+        auto F3 = ddp->kronecker(F1, F2, true);
+        // std::cout << "Kronecker Product Matrix:" << std::endl;
+        // ddp->printMatrix(F3);
+        return F3;
     }
 }
 
@@ -3042,12 +3423,50 @@ MQTDDQuantumGate* MQTDDCircuit::CreateNOTGate(std::string indices)
     return new MQTDDQuantumGate(m);//, ddp);
 }
 
+MQTDDQuantumGate* MQTDDCircuit::CreateSGate(std::string indices, bool transpose = false)
+{
+    if (transpose) {
+        mEdge m = CreateGateF(indices, ddp, dd::Sdagmat);
+        return new MQTDDQuantumGate(m);
+    }
+    // std::cout << "Creating S Gate for indices: " << indices << std::endl;
+    mEdge m = CreateGateF(indices, ddp, dd::Smat);
+    // ddp->printMatrix(m);
+    return new MQTDDQuantumGate(m);
+}
+
+MQTDDQuantumGate* MQTDDCircuit::CreateTGate(std::string indices, bool transpose = false)
+{
+    if (transpose) {
+        mEdge m = CreateGateF(indices, ddp, dd::Tdagmat);
+        return new MQTDDQuantumGate(m);
+    }
+    mEdge m = CreateGateF(indices, ddp, dd::Tmat);
+    return new MQTDDQuantumGate(m);
+}
+
 MQTDDQuantumGate* MQTDDCircuit::CreateCNOTGate(long int controller, long int controlled)
 {
     Control c;
     c.qubit = numQubits - 1 - controller;
     auto cnot_op = ddp->makeGateDD(dd::Xmat, numQubits, c, numQubits - 1 - controlled);
     return new MQTDDQuantumGate(cnot_op);//, ddp); 
+}
+
+MQTDDQuantumDensity* MQTDDCircuit::CreateReducedDensityMatrix(std::string indices)
+{
+    // assuming all ones are together
+    // find the index of the first 1 in indices
+    long int first_one_index = indices.find('1');
+    // find the last one index
+    long int last_one_index = indices.rfind('1');
+    unsigned int num_qubits_to_keep = last_one_index - first_one_index + 1;
+    auto m = ddp->makeZeroDensityOperatorM(num_qubits_to_keep);
+    auto c = ddp->extend(m, first_one_index, indices.length() - 1 - last_one_index);
+    // std::cout << "Reduced Density Matrix for indices: " << indices << std::endl;
+    // ddp->printMatrix(c);
+    ddp->incRef(c);
+    return new MQTDDQuantumDensity(c);
 }
 
 MQTDDQuantumGate* MQTDDCircuit::KroneckerProduct(MQTDDQuantumGate* m1, MQTDDQuantumGate* m2)
@@ -3066,12 +3485,72 @@ MQTDDQuantumGate* MQTDDCircuit::GateGateApply(MQTDDQuantumGate* m1, MQTDDQuantum
     return new MQTDDQuantumGate(c);//, ddp);
 }
 
+MQTDDQuantumState* MQTDDCircuit::StateStateApply(MQTDDQuantumState* m1, MQTDDQuantumState* m2)
+{
+    abort();
+}
+
+MQTDDQuantumDensity* MQTDDCircuit::DensityDensityApply(MQTDDQuantumDensity* m1, MQTDDQuantumDensity* m2)
+{
+    auto c1 = m1->GetDensity();
+    auto c2 = m2->GetDensity();
+    auto c = ddp->multiply(c1, c2);
+    ddp->incRef(c);
+    return new MQTDDQuantumDensity(c);
+}
+
+long double MQTDDCircuit::ComputeL1Norm(MQTDDQuantumDensity* m1, MQTDDQuantumDensity* m2)
+{
+    auto m1_density = m1->GetDensity();
+    auto m2_density = m2->GetDensity();
+    // std::cout << "Computing L1 Norm between Density Matrices:" << std::endl;
+    // ddp->printMatrix(m1_density);
+    std::cout << "Size of Matrix 1: ";
+    std::cout << ddp->size(m1_density) << std::endl;
+    // ddp->printMatrix(m2_density);
+    auto tmp = ddp->scalarMultiply(Complex::min_one, m2_density);
+    auto diff = ddp->add(m1_density, tmp);
+    // std::cout << "Difference Matrix:" << std::endl;
+    // ddp->printMatrix(diff);
+    // std::cout << "Size of Difference Matrix: ";
+    // std::cout << ddp->size(diff) << std::endl;
+    return ddp->normM(diff);
+}
+
+MQTDDQuantumDensity* MQTDDCircuit::ComputeReducedDensityMatrix(MQTDDQuantumGate* m1, MQTDDQuantumDensity* m2)
+{
+    mEdge m1_gate = m1->GetGate();
+    auto m2_density = m2->GetDensity();
+    // std::cout << "Computing Reduced Density Matrix:" << std::endl;
+    // std::cout << "Gate Matrix:" << std::endl;
+    // ddp->printMatrix(m1_gate);
+    // std::cout << "Input Density Matrix:" << std::endl;
+    // ddp->printMatrix(m2_density);
+    auto c = ddp->applyOperationToDensityM(m2_density, m1_gate);
+    // std::cout << "Resulting Reduced Density Matrix:" << std::endl;
+    // ddp->printMatrix(c);
+    ddp->incRef(c);
+    return new MQTDDQuantumDensity(c);
+}
+
 void MQTDDCircuit::ApplyGate(MQTDDQuantumGate* m)
 {
     auto c = m->GetGate();
     // ddp->printMatrix(c);
     stateVector = ddp->multiply(c, stateVector);
     // ddp->printVector(stateVector);
+}
+
+MQTDDQuantumState* MQTDDCircuit::GetInitState()
+{
+    return new MQTDDQuantumState(ddp->makeZeroState(numQubits));
+}
+
+MQTDDQuantumDensity* MQTDDCircuit::GetInitDensity()
+{
+    auto density = ddp->makeZeroDensityOperatorM(numQubits);
+    ddp->incRef(density);
+    return new MQTDDQuantumDensity(density);
 }
 
 MQTDDQuantumState* MQTDDCircuit::GetState()

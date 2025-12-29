@@ -46,10 +46,19 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("create_h", &CFLOBDDQuantumCircuit::CreateHadamardGate, "CreateHadamardGate")
         .def("create_i", &CFLOBDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
         .def("create_x", &CFLOBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
+        .def("create_s", &CFLOBDDQuantumCircuit::CreateSGate, "CreateSGate")
+        .def("create_t", &CFLOBDDQuantumCircuit::CreateTGate, "CreateTGate")
         .def("create_cx", &CFLOBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("create_reduced_density_matrix", &CFLOBDDQuantumCircuit::CreateReducedDensityMatrix, "CreateReducedDensityMatrix")
         .def("gate_gate_apply", &CFLOBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("state_state_apply", &CFLOBDDQuantumCircuit::StateStateApply, "StateStateApply")
+        .def("density_density_apply", &CFLOBDDQuantumCircuit::DensityDensityApply, "DensityDensityApply")
+        .def("compute_l1_norm", &CFLOBDDQuantumCircuit::ComputeL1Norm, "ComputeL1Norm")
+        .def("compute_reduced_density_matrix", &CFLOBDDQuantumCircuit::ComputeReducedDensityMatrix, "ComputeReducedDensityMatrix")
         .def("apply_gate", &CFLOBDDQuantumCircuit::ApplyGate, "ApplyGate")
-        .def("get_state", &CFLOBDDQuantumCircuit::GetState, "GetState");
+        .def("get_state", &CFLOBDDQuantumCircuit::GetState, "GetState")
+        .def("get_init_state", &CFLOBDDQuantumCircuit::GetInitState, "GetInitState")
+        .def("get_init_density", &CFLOBDDQuantumCircuit::GetInitDensity, "GetInitDensity");
 
     py::class_<BDDQuantumCircuit, QuantumCircuit>(m, "BDDQuantumCircuit")
         .def(py::init<>())
@@ -85,6 +94,7 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("create_x", &BDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
         .def("create_cx", &BDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
         .def("gate_gate_apply", &BDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("compute_reduced_density_matrix", &BDDQuantumCircuit::ComputeReducedDensityMatrix, "ComputeReducedDensityMatrix")
         .def("apply_gate", &BDDQuantumCircuit::ApplyGate, "ApplyGate")
         .def("get_state", &BDDQuantumCircuit::GetState, "GetState");
     
@@ -121,6 +131,7 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("create_x", &WeightedBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
         .def("create_cx", &WeightedBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
         .def("gate_gate_apply", &WeightedBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("compute_reduced_density_matrix", &WeightedBDDQuantumCircuit::ComputeReducedDensityMatrix, "ComputeReducedDensityMatrix")
         .def("apply_gate", &WeightedBDDQuantumCircuit::ApplyGate, "ApplyGate")
         .def("get_state", &WeightedBDDQuantumCircuit::GetState, "GetState");
 
@@ -158,9 +169,18 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("create_i", &WeightedCFLOBDDQuantumCircuit::CreateIdentityGate, "CreateIdentityGate")
         .def("create_x", &WeightedCFLOBDDQuantumCircuit::CreateNOTGate, "CreateNOTGate")
         .def("create_cx", &WeightedCFLOBDDQuantumCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("create_s", &WeightedCFLOBDDQuantumCircuit::CreateSGate, "CreateSGate")
+        .def("create_t", &WeightedCFLOBDDQuantumCircuit::CreateTGate, "CreateTGate")
+        .def("create_reduced_density_matrix", &WeightedCFLOBDDQuantumCircuit::CreateReducedDensityMatrix, "CreateReducedDensityMatrix")
         .def("gate_gate_apply", &WeightedCFLOBDDQuantumCircuit::GateGateApply, "GateGateApply")
+        .def("state_state_apply", &WeightedCFLOBDDQuantumCircuit::StateStateApply, "StateStateApply")
+        .def("density_density_apply", &WeightedCFLOBDDQuantumCircuit::DensityDensityApply, "DensityDensityApply")
+        .def("compute_l1_norm", &WeightedCFLOBDDQuantumCircuit::ComputeL1Norm, "ComputeL1Norm")
+        .def("compute_reduced_density_matrix", &WeightedCFLOBDDQuantumCircuit::ComputeReducedDensityMatrix, "ComputeReducedDensityMatrix")
         .def("apply_gate", &WeightedCFLOBDDQuantumCircuit::ApplyGate, "ApplyGate")
-        .def("get_state", &WeightedCFLOBDDQuantumCircuit::GetState, "GetState");
+        .def("get_state", &WeightedCFLOBDDQuantumCircuit::GetState, "GetState")
+        .def("get_init_state", &WeightedCFLOBDDQuantumCircuit::GetInitState, "GetInitState")
+        .def("get_init_density", &WeightedCFLOBDDQuantumCircuit::GetInitDensity, "GetInitDensity");
 
     
     py::class_<MQTDDCircuit, QuantumCircuit>(m, "MQTDDCircuit")
@@ -197,9 +217,18 @@ PYBIND11_MODULE(pyquasimodo, m) {
         .def("create_i", &MQTDDCircuit::CreateIdentityGate, "CreateIdentityGate")
         .def("create_x", &MQTDDCircuit::CreateNOTGate, "CreateNOTGate")
         .def("create_cx", &MQTDDCircuit::CreateCNOTGate, "CreateCNOTGate")
+        .def("create_s", &MQTDDCircuit::CreateSGate, "CreateSGate")
+        .def("create_t", &MQTDDCircuit::CreateTGate, "CreateTGate")
+        .def("create_reduced_density_matrix", &MQTDDCircuit::CreateReducedDensityMatrix, "CreateReducedDensityMatrix")
         .def("gate_gate_apply", &MQTDDCircuit::GateGateApply, "GateGateApply")
+        .def("state_state_apply", &MQTDDCircuit::StateStateApply, "StateStateApply")
+        .def("density_density_apply", &MQTDDCircuit::DensityDensityApply, "DensityDensityApply")
+        .def("compute_l1_norm", &MQTDDCircuit::ComputeL1Norm, "ComputeL1Norm")
+        .def("compute_reduced_density_matrix", &MQTDDCircuit::ComputeReducedDensityMatrix, "ComputeReducedDensityMatrix")
         .def("apply_gate", &MQTDDCircuit::ApplyGate, "ApplyGate")
-        .def("get_state", &MQTDDCircuit::GetState, "GetState");
+        .def("get_state", &MQTDDCircuit::GetState, "GetState")
+        .def("get_init_state", &MQTDDCircuit::GetInitState, "GetInitState")
+        .def("get_init_density", &MQTDDCircuit::GetInitDensity, "GetInitDensity");
         
 
     
@@ -229,7 +258,8 @@ PYBIND11_MODULE(pyquasimodo, m) {
     
     py::class_<CFLOBDDQuantumState, QuantumState>(m, "CFLOBDDQuantumState")
         .def(py::init<>())
-        .def("print", &CFLOBDDQuantumState::Print, "Print");
+        .def("print", &CFLOBDDQuantumState::Print, "Print")
+        .def("size", &CFLOBDDQuantumState::Size, "Size");
     
     py::class_<BDDQuantumState, QuantumState>(m, "BDDQuantumState")
         .def(py::init<>())
@@ -246,5 +276,32 @@ PYBIND11_MODULE(pyquasimodo, m) {
     py::class_<MQTDDQuantumState, QuantumState>(m, "MQTDDQuantumState")
         .def(py::init<>())
         .def("print", &MQTDDQuantumState::Print, "Print");
+
+    py::class_<QuantumDensity>(m, "QuantumDensity");
+
+    py::class_<CFLOBDDQuantumDensity, QuantumDensity>(m, "CFLOBDDQuantumDensity")
+        .def(py::init<>())
+        .def("print", &CFLOBDDQuantumDensity::Print, "Print")
+        .def("size", &CFLOBDDQuantumDensity::Size, "Size");
+
+    py::class_<BDDQuantumDensity, QuantumDensity>(m, "BDDQuantumDensity")
+        .def(py::init<>())
+        .def("print", &BDDQuantumDensity::Print, "Print")
+        .def("size", &BDDQuantumDensity::Size, "Size");
+
+    py::class_<WeightedBDDQuantumDensity, QuantumDensity>(m, "WeightedBDDQuantumDensity")
+        .def(py::init<>())
+        .def("print", &WeightedBDDQuantumDensity::Print, "Print")
+        .def("size", &WeightedBDDQuantumDensity::Size, "Size");
+
+    py::class_<WeightedCFLOBDDQuantumDensity, QuantumDensity>(m, "WeightedCFLOBDDQuantumDensity")
+        .def(py::init<>())
+        .def("print", &WeightedCFLOBDDQuantumDensity::Print, "Print")
+        .def("size", &WeightedCFLOBDDQuantumDensity::Size, "Size");
+
+    py::class_<MQTDDQuantumDensity, QuantumDensity>(m, "MQTDDQuantumDensity")
+        .def(py::init<>())
+        .def("print", &MQTDDQuantumDensity::Print, "Print")
+        .def("size", &MQTDDQuantumDensity::Size, "Size");
 
 }

@@ -112,6 +112,7 @@ namespace dd {
             dUniqueTable.resize(nqubits);
             stochasticNoiseOperationCache.resize(nqubits);
             idTable.resize(nqubits);
+            idTableDD.resize(nqubits);
         }
 
         // reset package state
@@ -222,10 +223,18 @@ namespace dd {
             return r;
         }
 
-        dEdge makeZeroDensityOperator(QubitCount n) {
+        dEdge makeZeroDensityOperator(QubitCount n, std::size_t start = 0) {
             auto f = dEdge::one;
-            for (std::size_t p = 0; p < n; p++) {
+            for (std::size_t p = start; p < n + start; p++) {
                 f = makeDDNode(static_cast<Qubit>(p), std::array{f, dEdge::zero, dEdge::zero, dEdge::zero});
+            }
+            return f;
+        }
+
+        mEdge makeZeroDensityOperatorM(QubitCount n, std::size_t start = 0) {
+            auto f = mEdge::one;
+            for (std::size_t p = start; p < n + start; p++) {
+                f = makeDDNode(static_cast<Qubit>(p), std::array{f, mEdge::zero, mEdge::zero, mEdge::zero});
             }
             return f;
         }
@@ -656,10 +665,12 @@ namespace dd {
                 matrixTranspose.clear();
                 conjugateMatrixTranspose.clear();
                 matrixKronecker.clear();
+                densityKronecker.clear();
                 matrixVectorMultiplication.clear();
                 matrixMatrixMultiplication.clear();
                 toffoliTable.clear();
                 clearIdentityTable();
+                clearIdentityTableDD();
                 stochasticNoiseOperationCache.clear();
                 densityAdd.clear();
                 densityDensityMultiplication.clear();
@@ -674,6 +685,7 @@ namespace dd {
                 vectorInnerProduct.clear();
                 vectorKronecker.clear();
                 matrixKronecker.clear();
+                densityKronecker.clear();
                 stochasticNoiseOperationCache.clear();
                 densityAdd.clear();
                 densityDensityMultiplication.clear();
@@ -785,7 +797,7 @@ namespace dd {
             vectorInnerProduct.clear();
             vectorKronecker.clear();
             matrixKronecker.clear();
-
+            densityKronecker.clear();
             toffoliTable.clear();
 
             clearIdentityTable();
@@ -856,6 +868,49 @@ namespace dd {
             }
 
             return std::string{result.rbegin(), result.rend()};
+        }
+
+        fp norm(dEdge& rootEdge, fp epsilon = 0.001) {
+            fp    weight{1.0L};
+            if (rootEdge.w.approximatelyZero()) {
+                return 0.0L;
+            }
+            else if (!rootEdge.w.approximatelyOne()) {
+                weight = ComplexNumbers::mag2(rootEdge.w);
+            }
+            weight += ComplexNumbers::mag2(rootEdge.w);
+            fp l1Norm = norm(rootEdge.p->e.at(1), epsilon);
+            fp l2Norm = norm(rootEdge.p->e.at(0), epsilon);
+            fp l3Norm = norm(rootEdge.p->e.at(2), epsilon);
+            fp l4Norm = norm(rootEdge.p->e.at(3), epsilon);
+
+            return weight * (l1Norm + l2Norm + l3Norm + l4Norm);
+        }
+
+        fp normM(mEdge& rootEdge, fp epsilon = 0.001) {
+            // std::cout << "RootEdge variable: " << rootEdge.p->v << " and weight " << ComplexNumbers::mag2(rootEdge.w) << "\n";
+            fp    weight{1.0L};
+            if (rootEdge.w.approximatelyZero()) {
+                // std::cout << "ROOT EDGE ZERO\n";
+                return 0.0L;
+            }
+            else if (rootEdge.p->isTerminal(rootEdge.p)) {
+                // std::cout << "ROOT EDGE TERMINAL " << rootEdge.p->v << " " << ComplexNumbers::mag2(rootEdge.w) << "\n";
+                return ComplexNumbers::mag2(rootEdge.w);
+            }
+            weight = ComplexNumbers::mag2(rootEdge.w);
+            fp l1Norm = normM(rootEdge.p->e.at(0), epsilon);
+            fp l2Norm = normM(rootEdge.p->e.at(1), epsilon);
+            fp l3Norm = normM(rootEdge.p->e.at(2), epsilon);
+            fp l4Norm = normM(rootEdge.p->e.at(3), epsilon);
+
+            // std::cout << "ROOT EDGE WEIGHT " << weight << "\n";
+            // std::cout << "L1 NORM " << l1Norm << "\n";
+            // std::cout << "L2 NORM " << l2Norm << "\n";
+            // std::cout << "L3 NORM " << l3Norm << "\n";
+            // std::cout << "L4 NORM " << l4Norm << "\n";
+            // std::cout << "TOTAL NORM " << weight * (l1Norm + l2Norm + l3Norm + l4Norm) << "\n";
+            return weight * (l1Norm + l2Norm + l3Norm + l4Norm);
         }
 
     private:
@@ -1006,6 +1061,24 @@ namespace dd {
             } else if constexpr (std::is_same_v<Node, dNode>) {
                 return densityAdd;
             }
+        }
+
+        template<class Edge>
+        Edge scalarMultiply(const Complex c, const Edge& e) {
+            [[maybe_unused]] const auto before = cn.cacheCount();
+
+            auto result = e;
+            result.w = cn.mulCached(c, e.w);
+
+            if (result.w != Complex::zero) {
+                cn.returnToCache(result.w);
+                result.w = cn.lookup(result.w);
+            }
+
+            [[maybe_unused]] const auto after = cn.complexCache.getCount();
+            assert(after == before);
+
+            return result;
         }
 
         template<class Edge>
@@ -1228,6 +1301,19 @@ namespace dd {
             if (generateDensityMatrix) {
                 dEdge::setDensityMatrixTrue(e);
             }
+
+            return e;
+        }
+
+        mEdge applyOperationToDensityM(mEdge& e, const mEdge& operation, bool generateDensityMatrix = false) {
+            [[maybe_unused]] const auto before = cn.cacheCount();
+            auto                        tmp0   = conjugateTranspose(operation);
+            auto                        tmp1   = multiply(e, tmp0, 0, false);
+            auto                        tmp2   = multiply(operation, tmp1, 0, generateDensityMatrix);
+            incRef(tmp2);
+            // dEdge::alignDensityEdge(e);
+            decRef(e);
+            e = tmp2;
 
             return e;
         }
@@ -1607,21 +1693,25 @@ namespace dd {
 
         ComputeTable<vEdge, vEdge, vCachedEdge, Config::CT_VEC_KRON_NBUCKET> vectorKronecker{};
         ComputeTable<mEdge, mEdge, mCachedEdge, Config::CT_MAT_KRON_NBUCKET> matrixKronecker{};
+        ComputeTable<dEdge, dEdge, dCachedEdge, Config::CT_MAT_KRON_NBUCKET> densityKronecker{};
 
         template<class Node>
         [[nodiscard]] auto& getKroneckerComputeTable() {
             if constexpr (std::is_same_v<Node, vNode>) {
                 return vectorKronecker;
-            } else {
+            } else if constexpr (std::is_same_v<Node, mNode>) {
                 return matrixKronecker;
+            } else if constexpr (std::is_same_v<Node, dNode>) {
+                return densityKronecker;
             }
+            throw std::invalid_argument("Unsupported node type");
         }
 
         template<class Edge>
         Edge kronecker(const Edge& x, const Edge& y, bool incIdx = true) {
-            if constexpr (std::is_same_v<Edge, dEdge>) {
-                throw std::invalid_argument("Kronecker is currently not supported for density matrices");
-            }
+            // if constexpr (std::is_same_v<Edge, dEdge>) {
+            //     throw std::invalid_argument("Kronecker is currently not supported for density matrices");
+            // }
 
             auto e = kronecker2(x, y, incIdx);
 
@@ -1640,9 +1730,20 @@ namespace dd {
             return g;
         }
 
+        dEdge extendDD(const dEdge& e, Qubit h, Qubit l = 0) {
+            auto f = (l > 0) ? kronecker(e, makeIdentDD(static_cast<dd::QubitCount>(l))) : e;
+            auto g = (h > 0) ? kronecker(makeIdentDD(static_cast<dd::QubitCount>(h)), f) : f;
+            return g;
+        }
+
     private:
         template<class Node>
         Edge<Node> kronecker2(const Edge<Node>& x, const Edge<Node>& y, bool incIdx = true) {
+            // std::cout << "Kronecker called for nodes at level " << x.p->v << " and " << y.p->v << std::endl;
+            // std::cout << "Printing x\n";
+            // printMatrix(x);
+            // std::cout << "Printing y\n";
+            // printMatrix(y);
             if (x.w.approximatelyZero() || y.w.approximatelyZero()) {
                 return Edge<Node>::zero;
             }
@@ -1650,6 +1751,8 @@ namespace dd {
             if (x.isTerminal()) {
                 auto r = y;
                 r.w    = cn.mulCached(x.w, y.w);
+                // std::cout << "Kronecker terminal x, returning\n";
+                // printMatrix(r);
                 return r;
             }
 
@@ -1659,6 +1762,8 @@ namespace dd {
                 if (r.w.approximatelyZero()) {
                     return Edge<Node>::zero;
                 }
+                // std::cout << "Kronecker cached result:\n";
+                // printMatrix({r.p, cn.getCached(r.w)});
                 return {r.p, cn.getCached(r.w)};
             }
 
@@ -1674,6 +1779,7 @@ namespace dd {
                     }
 
                     e.w = cn.getCached(CTEntry::val(y.w.r), CTEntry::val(y.w.i));
+                    e.w = cn.mulCached(e.w, x.w);
                     computeTable.insert(x, y, {e.p, e.w});
                     return e;
                 }
@@ -1688,6 +1794,12 @@ namespace dd {
             auto e   = makeDDNode(idx, edge, true);
             ComplexNumbers::mul(e.w, e.w, x.w);
             computeTable.insert(x, y, {e.p, e.w});
+            // std::cout << "Printing x again\n";
+            // printMatrix(x);
+            // std::cout << "Printing y again\n";
+            // printMatrix(y);
+            // std::cout << "Kronecker product result:\n";
+            // printMatrix(e);
             return e;
         }
 
@@ -1880,11 +1992,45 @@ namespace dd {
             return e;
         }
 
+        dEdge makeIdentDD(QubitCount n) { return makeIdentDD(0, static_cast<Qubit>(n - 1)); }
+        dEdge makeIdentDD(Qubit leastSignificantQubit, Qubit mostSignificantQubit) {
+            if (mostSignificantQubit < leastSignificantQubit) {
+                return dEdge::one;
+            }
+
+            if (leastSignificantQubit == 0 && idTableDD[static_cast<std::size_t>(mostSignificantQubit)].p != nullptr) {
+                return idTableDD[static_cast<std::size_t>(mostSignificantQubit)];
+            }
+            if (mostSignificantQubit >= 1 && (idTableDD[static_cast<std::size_t>(mostSignificantQubit - 1)]).p != nullptr) {
+                idTableDD[static_cast<std::size_t>(mostSignificantQubit)] = makeDDNode(mostSignificantQubit,
+                                                                                     std::array{idTableDD[static_cast<std::size_t>(mostSignificantQubit - 1)],
+                                                                                                dEdge::zero,
+                                                                                                dEdge::zero,
+                                                                                                idTableDD[static_cast<std::size_t>(mostSignificantQubit - 1)]});
+                return idTableDD[static_cast<std::size_t>(mostSignificantQubit)];
+            }
+
+            auto e = makeDDNode(leastSignificantQubit, std::array{dEdge::one, dEdge::zero, dEdge::zero, dEdge::one});
+            for (auto k = static_cast<std::size_t>(leastSignificantQubit + 1); k <= static_cast<std::make_unsigned_t<Qubit>>(mostSignificantQubit); k++) {
+                e = makeDDNode(static_cast<Qubit>(k), std::array{e, dEdge::zero, dEdge::zero, e});
+            }
+            if (leastSignificantQubit == 0) {
+                idTableDD[static_cast<std::size_t>(mostSignificantQubit)] = e;
+            }
+            return e;
+        }
+
         // identity table access and reset
         [[nodiscard]] const auto& getIdentityTable() const { return idTable; }
 
         void clearIdentityTable() {
             for (auto& entry: idTable) {
+                entry.p = nullptr;
+            }
+        }
+
+        void clearIdentityTableDD() {
+            for (auto& entry: idTableDD) {
                 entry.p = nullptr;
             }
         }
@@ -1897,6 +2043,7 @@ namespace dd {
 
     private:
         std::vector<mEdge> idTable{};
+        std::vector<dEdge> idTableDD{};
 
         ///
         /// Noise Operations
@@ -2372,7 +2519,12 @@ namespace dd {
                     // set fixed width to maximum of a printed number
                     // (-) 0.precision plus/minus 0.precision i
                     constexpr auto width = 1 + 2 + precision + 1 + 2 + precision + 1;
-                    std::cout << std::setw(width) << ComplexValue::toString(amplitude.r, amplitude.i, false, precision) << " ";
+                    if (amplitude.approximatelyZero()) {
+                        continue;
+                    } else {
+                        std::cout << i << " " << j << " " << ComplexValue::toString(amplitude.r, amplitude.i, false, precision) << std::endl;
+                    }
+                    // std::cout << std::setw(width) << ComplexValue::toString(amplitude.r, amplitude.i, false, precision) << " ";
                 }
                 std::cout << "\n";
             }

@@ -22,6 +22,17 @@ void CFLOBDDQuantumState::Print()
     state.print(std::cout);
 }
 
+unsigned int CFLOBDDQuantumState::Size()
+{
+    unsigned int nodeCount = 0, edgeCount = 0;
+    unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+    state.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << "Node Count: " << nodeCount << ", Edge Count: " << edgeCount << std::endl;
+    std::cout << "return value map size: " << state.root->rootConnection.returnMapHandle.Size() << std::endl;
+    state.root->rootConnection.returnMapHandle.print(std::cout);
+    return nodeCount + edgeCount;
+}
+
 
 // ********* BDDQuantumState *********
 BDDQuantumState::BDDQuantumState()
@@ -39,6 +50,11 @@ BDDQuantumState::~BDDQuantumState()
 void BDDQuantumState::Print()
 {
     state.print(2, 2);
+}
+
+unsigned int BDDQuantumState::Size()
+{
+    return state.nodeCount();
 }
 
 // ********* WeightedBDDQuantumState *********
@@ -60,6 +76,17 @@ void WeightedBDDQuantumState::Print()
 
 }
 
+unsigned int WeightedBDDQuantumState::Size()
+{
+    // unsigned int nodeCount = 0, edgeCount = 0;
+    // unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+    // state.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    // std::cout << "Node Count: " << nodeCount << ", Edge Count: " << edgeCount << std::endl;
+    // std::cout << "return value map size: " << state.root->rootConnection.returnMapHandle.Size() << std::endl;
+    // return nodeCount + edgeCount;
+    return 0;
+}
+
 // ********* WeightedCFLOBDDQuantumState *********
 WeightedCFLOBDDQuantumState::WeightedCFLOBDDQuantumState()
 {
@@ -77,6 +104,17 @@ WeightedCFLOBDDQuantumState::~WeightedCFLOBDDQuantumState()
 void WeightedCFLOBDDQuantumState::Print()
 {
     state.print(std::cout);
+}
+
+unsigned int WeightedCFLOBDDQuantumState::Size()
+{
+    unsigned int nodeCount = 0, edgeCount = 0;
+    unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+    state.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << "Node Count: " << nodeCount << ", Edge Count: " << edgeCount << std::endl;
+    std::cout << "return value map size: " << state.root->rootConnection.returnMapHandle.Size() << std::endl;
+    state.root->rootConnection.returnMapHandle.print(std::cout);
+    return nodeCount + edgeCount;
 }
 
 
@@ -97,4 +135,10 @@ MQTDDQuantumState::~MQTDDQuantumState()
 void MQTDDQuantumState::Print()
 {
     // ddp->printVector(state);
+}
+
+unsigned int MQTDDQuantumState::Size()
+{
+    // return ddp->size(state);
+    return 0;
 }
