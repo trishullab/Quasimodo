@@ -81,6 +81,7 @@ class QuantumCircuit {
         virtual QuantumGate* CreateSGate(std::string indices, bool transpose) = 0;
         virtual QuantumGate* CreateTGate(std::string indices, bool transpose) = 0;
         virtual QuantumGate* CreateCNOTGate(long int controller, long int controlled) = 0;
+        virtual QuantumGate* CreateRZGate(std::string indices, double theta) = 0;
         virtual QuantumDensity* CreateReducedDensityMatrix(std::string indices) = 0;
         QuantumGate* KroneckerProduct(QuantumGate* m1, QuantumGate* m2);
         QuantumGate* GateGateApply(QuantumGate* m1, QuantumGate* m2);
@@ -142,6 +143,7 @@ class CFLOBDDQuantumCircuit : public QuantumCircuit {
         CFLOBDDQuantumGate* CreateSGate(std::string indices, bool transpose);
         CFLOBDDQuantumGate* CreateTGate(std::string indices, bool transpose);
         CFLOBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        CFLOBDDQuantumGate* CreateRZGate(std::string indices, double theta);
         CFLOBDDQuantumDensity* CreateReducedDensityMatrix(std::string indices);
         CFLOBDDQuantumGate* KroneckerProduct(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2);
         CFLOBDDQuantumGate* GateGateApply(CFLOBDDQuantumGate* m1, CFLOBDDQuantumGate* m2);
@@ -200,6 +202,7 @@ class BDDQuantumCircuit : public QuantumCircuit {
         BDDQuantumGate* CreateSGate(std::string indices, bool transpose);
         BDDQuantumGate* CreateTGate(std::string indices, bool transpose);
         BDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        BDDQuantumGate* CreateRZGate(std::string indices, double theta);
         BDDQuantumDensity* CreateReducedDensityMatrix(std::string indices);
         BDDQuantumGate* KroneckerProduct(BDDQuantumGate* m1, BDDQuantumGate* m2);
         BDDQuantumGate* GateGateApply(BDDQuantumGate* m1, BDDQuantumGate* m2);
@@ -266,6 +269,7 @@ class WeightedBDDQuantumCircuit : public QuantumCircuit
         WeightedBDDQuantumGate* CreateNOTGate(std::string indices);
         WeightedBDDQuantumGate* CreateSGate(std::string indices, bool transpose);
         WeightedBDDQuantumGate* CreateTGate(std::string indices, bool transpose);
+        WeightedBDDQuantumGate* CreateRZGate(std::string indices, double theta);
         WeightedBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
         WeightedBDDQuantumDensity* CreateReducedDensityMatrix(std::string indices);
         
@@ -324,6 +328,7 @@ class WeightedCFLOBDDQuantumCircuit : public QuantumCircuit {
         WeightedCFLOBDDQuantumGate* CreateSGate(std::string indices, bool transpose);
         WeightedCFLOBDDQuantumGate* CreateTGate(std::string indices, bool transpose);
         WeightedCFLOBDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
+        WeightedCFLOBDDQuantumGate* CreateRZGate(std::string indices, double theta);
         WeightedCFLOBDDQuantumDensity* CreateReducedDensityMatrix(std::string indices);
         
         WeightedCFLOBDDQuantumGate* KroneckerProduct(WeightedCFLOBDDQuantumGate* m1, WeightedCFLOBDDQuantumGate* m2);
@@ -385,7 +390,7 @@ class MQTDDCircuit : public QuantumCircuit {
         MQTDDQuantumGate* CreateTGate(std::string indices, bool transpose);
         MQTDDQuantumGate* CreateCNOTGate(long int controller, long int controlled);
         MQTDDQuantumDensity* CreateReducedDensityMatrix(std::string indices);
-        
+        MQTDDQuantumGate* CreateRZGate(std::string indices, double theta);
         MQTDDQuantumGate* KroneckerProduct(MQTDDQuantumGate* m1, MQTDDQuantumGate* m2);
         MQTDDQuantumGate* GateGateApply(MQTDDQuantumGate* m1, MQTDDQuantumGate* m2);
         MQTDDQuantumState* StateStateApply(MQTDDQuantumState* m1, MQTDDQuantumState* m2);

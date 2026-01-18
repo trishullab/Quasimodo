@@ -829,6 +829,16 @@ CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateCNOTGate(long int controller, l
     }
 }
 
+CFLOBDDQuantumGate* CFLOBDDQuantumCircuit::CreateRZGate(std::string indices, double theta)
+{
+    long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
+    std::string new_indices(adjusted_len, '0');
+    for (unsigned int i = 0; i < indices.length(); i++)
+        new_indices[i] = indices[i];
+    auto RZ = CreateGateFWithParam(new_indices, Matrix1234ComplexFloatBoost::MkRZGate, theta);
+    return new CFLOBDDQuantumGate(RZ);
+}
+
 CFLOBDDQuantumDensity* CFLOBDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
 {
     long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
@@ -1739,6 +1749,12 @@ BDDQuantumGate* BDDQuantumCircuit::CreateCNOTGate(long int controller, long int 
     return new BDDQuantumGate(CNOTGate);
 }
 
+BDDQuantumGate* BDDQuantumCircuit::CreateRZGate(std::string indices, double theta)
+{
+    abort(); // To be implemented
+    return nullptr;
+}
+
 BDDQuantumDensity* BDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
 {
     abort(); // To be implemented
@@ -2361,6 +2377,11 @@ WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::KroneckerProduct(WeightedBDDQ
 }
 
 WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateCNOTGate(long int controller, long int controlled)
+{
+    abort();
+}
+
+WeightedBDDQuantumGate* WeightedBDDQuantumCircuit::CreateRZGate(std::string indices, double theta)
 {
     abort();
 }
@@ -3080,6 +3101,12 @@ WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateCNOTGate(long i
     }
 }
 
+WeightedCFLOBDDQuantumGate* WeightedCFLOBDDQuantumCircuit::CreateRZGate(std::string indices, double theta)
+{
+    abort();
+    return nullptr;
+}
+
 WeightedCFLOBDDQuantumDensity* WeightedCFLOBDDQuantumCircuit::CreateReducedDensityMatrix(std::string indices)
 {
     long int adjusted_len = std::pow(2, ceil(log2(indices.length())));
@@ -3451,6 +3478,12 @@ MQTDDQuantumGate* MQTDDCircuit::CreateCNOTGate(long int controller, long int con
     c.qubit = numQubits - 1 - controller;
     auto cnot_op = ddp->makeGateDD(dd::Xmat, numQubits, c, numQubits - 1 - controlled);
     return new MQTDDQuantumGate(cnot_op);//, ddp); 
+}
+
+MQTDDQuantumGate* MQTDDCircuit::CreateRZGate(std::string indices, double theta)
+{
+    mEdge m = CreateGateF(indices, ddp, dd::RZmat(M_PI * theta));
+    return new MQTDDQuantumGate(m);
 }
 
 MQTDDQuantumDensity* MQTDDCircuit::CreateReducedDensityMatrix(std::string indices)
